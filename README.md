@@ -1,3 +1,2 @@
-<b>test</b>
 # tsc-desktop
 tsClinical Metadata Desktop Tools
