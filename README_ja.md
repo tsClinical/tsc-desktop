@@ -19,10 +19,6 @@ tsClinical Metadata Desktop Toolsは、臨床試験のメタデータをExcelか
 [^2]: 本ソフトウェアがサポートしているODMのバージョンは、"Specification for the Operational Data Model (ODM) Version 1.3.2"です。  
 [^3]: Medidata Rave EDCのArchitect Loader Draft Spreadsheet  
 
-\*1: 本ソフトウェアがサポートしているDefine-XMLのバージョンは、"CDISC Define-XML Specification Version 2.0"および"Analysis Results Metadata Specification Version 1.0 for Define-XML Version 2"です。  
-\*2: 本ソフトウェアがサポートしているODMのバージョンは、"Specification for the Operational Data Model (ODM) Version 1.3.2"です。  
-\*3: Medidata Rave EDCのArchitect Loader Draft Spreadsheet  
-
 ### 3. バイナリ配布版の動作環境
 * Microsoft Windows 8.1および10
 * OpenJDK 11（ソフトウェアに同梱）
