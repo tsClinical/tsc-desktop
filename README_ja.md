@@ -1,8 +1,3 @@
----
-title: README_ja
-tags: []
----
-
 # tsClinical Metadata Desktop Tools
 Version 1.0.3
 
