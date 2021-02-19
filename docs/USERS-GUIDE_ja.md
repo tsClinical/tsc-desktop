@@ -8,7 +8,7 @@ Version 1.0.3
 
 ### 1. 各機能の説明
 #### 1.1. Convert from Excel to Define-XML
-![](https://github.com/tsClinical/tsc-desktop/tree/master/docs/images/image001.jpg)
+![](docs/images/image001.jpg)
 
 |入力項目|説明|
 |:---|:---|
