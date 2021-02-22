@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.cdisc.org/ns/odm/v1.3"
+  xmlns="http://www.cdisc.org/ns/odm/v1.3"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:odm="http://www.cdisc.org/ns/odm/v1.3"
+  xmlns:def="http://www.cdisc.org/ns/def/v2.0"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+
+
+  <!--
+      Define-XML 2.0.0 define-extension schema draft
+      as developed by the CDISC XML Technologies Team
+  -->
+
+  <xs:import namespace="http://www.cdisc.org/ns/def/v2.0"
+    schemaLocation="define-ns.xsd"/>
+  <xs:include schemaLocation="../cdisc-odm-1.3.2/ODM1-3-2.xsd"/>
+    
+<!-- Modified by k.ebi, FUJITSU in 2018-01-04 to avoid use of xs:redefine,
+     which is interpreted differently parser by parser.
+     
+  <xs:redefine schemaLocation="../cdisc-odm-1.3.2/ODM1-3-2.xsd">
+
+    <!__
+        MetaDataVersion
+    __>
+    <xs:attributeGroup name="MetaDataVersionAttributeExtension">
+      <xs:attributeGroup ref="MetaDataVersionAttributeExtension"/>
+      <xs:attribute ref="def:DefineVersion"/>
+      <xs:attribute ref="def:StandardName"/>
+      <xs:attribute ref="def:StandardVersion"/>
+    </xs:attributeGroup>
+
+    <xs:group name="MetaDataVersionPreIncludeElementExtension">
+      <xs:sequence>
+        <xs:group ref="MetaDataVersionPreIncludeElementExtension"/>
+        <xs:element ref="def:AnnotatedCRF" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="def:SupplementalDoc" minOccurs="0" maxOccurs="1"/>
+        <!__ moved to end of MetaDataVersion __>
+        <!__ <xs:element ref="def:leaf" minOccurs="0" maxOccurs="unbounded"/> __>
+        <!__ deprecated: replaced by odm:MethodDef __>
+        <!__ <xs:element ref="def:ComputationMethod" minOccurs="0" maxOccurs="unbounded"/> __>
+        <xs:element ref="def:ValueListDef" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="def:WhereClauseDef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:group>
+
+    <xs:group name="MetaDataVersionElementExtension">
+      <xs:sequence>
+        <xs:group ref="MetaDataVersionElementExtension"/>
+        <xs:element ref="def:CommentDef" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="def:leaf" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:group>
+
+
+    <!__
+        ItemGroupDef
+    __>
+    <xs:attributeGroup name="ItemGroupDefAttributeExtension">
+      <xs:attributeGroup ref="ItemGroupDefAttributeExtension"/>
+      <!__ deprecated: replaced by odm:Description __>
+      <!__ <xs:attribute ref="def:Label" use="required"/> __>
+      <xs:attribute ref="def:Structure"/>
+      <!__ deprecated: replaced by odm:ItemRef/@KeySequence __>
+      <!__ <xs:attribute ref="def:DomainKeys" use="optional"/> __>
+      <xs:attribute ref="def:Class" use="optional"/>
+      <xs:attribute ref="def:ArchiveLocationID" use="optional"/>
+      <xs:attribute ref="def:CommentOID" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:group name="ItemGroupDefElementExtension">
+      <xs:sequence>
+        <xs:group ref="ItemGroupDefElementExtension"/>
+        <xs:element ref="def:leaf" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:group>
+
+
+    <!__
+        ItemRef
+    __>
+    <xs:group name="ItemRefElementExtension">
+      <xs:sequence>
+        <xs:group ref="ItemRefElementExtension"/>
+        <xs:element ref="def:WhereClauseRef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:group>
+
+
+    <!__
+        ItemDef
+    __>
+    <xs:attributeGroup name="ItemDefAttributeExtension">
+      <xs:attributeGroup ref="ItemDefAttributeExtension"/>
+      <!__ deprecated: replaced by odm:Description __>
+      <!__ <xs:attribute ref="def:Label" use="required"/> __>
+      <xs:attribute ref="def:DisplayFormat" use="optional"/>
+      <!__ deprecated: replaced by odm:MethodDef __>
+      <!__ <xs:attribute ref="def:ComputationMethodOID"/> __>
+      <xs:attribute ref="def:CommentOID" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:group name="ItemDefElementExtension">
+      <xs:sequence>
+        <xs:group ref="ItemDefElementExtension"/>
+        <xs:element ref="def:Origin" minOccurs="0" maxOccurs="unbounded"/>
+        <!__ spec says required but  optional for bkwd compatibility __>
+        <xs:element ref="def:ValueListRef" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+    </xs:group>
+
+
+    <!__
+        RangeCheck
+    __>
+    <xs:attributeGroup name="RangeCheckAttributeExtension">
+      <xs:attributeGroup ref="RangeCheckAttributeExtension"/>
+      <xs:attribute ref="def:ItemOID" use="required"/>
+    </xs:attributeGroup>
+
+
+    <!__
+          CodeListItem and EnumeratedItem
+      __>
+    <xs:attributeGroup name="CodeListItemAttributeExtension">
+      <xs:attributeGroup ref="CodeListItemAttributeExtension"/>
+      <!__ deprecated: replaced by odm:Rank __>
+      <!__ <xs:attribute ref="def:Rank"/> __>
+      <xs:attribute ref="def:ExtendedValue" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="EnumeratedItemAttributeExtension">
+      <xs:attributeGroup ref="EnumeratedItemAttributeExtension"/>
+      <xs:attribute ref="def:ExtendedValue" use="optional"/>
+    </xs:attributeGroup>
+
+
+    <!__
+          Methoddef
+      __>
+
+    <xs:group name="MethodDefElementExtension">
+      <xs:sequence>
+        <xs:group ref="MethodDefElementExtension"/>
+        <xs:element ref="def:DocumentRef" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:group>
+
+
+  </xs:redefine>
+ -->
+
+</xs:schema>

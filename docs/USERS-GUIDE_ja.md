@@ -105,7 +105,6 @@ Version 1.0.3
 * Output Locationに設定したExcelファイルが開かれているなど、他のプログラムからアクセスされている場合は書き込みができません。
 
 #### 1.5. Create CRF Spec from Datasets
-（本機能はGitHubに公開していません。）  
 ![](images/image005.jpg)
 
 |入力項目|説明|
@@ -118,13 +117,14 @@ Version 1.0.3
 |Text Qualifier|Datasets Text Filesを設定した場合に入力が必要です。各列の囲み文字を「"」「'」から選択します。囲み文字が無い場合は「(None)」を選択します。|
 |Output Location|Excelが作成されるフォルダを指定します。ファイル名はデフォルトで"crf_spec.xlsx"と表示されますが、変更することができます。|
 
-* Architect CRFまたはDatasets Text Filesのどちらか、または両方を指定してCRF Specを作成することができます。
+* Architect CRFまたはDatasets Text Filesのどちらか、または両方を指定してCRF Specを作成することができます。[\*1]
 * Architect CRFとDatasets Text Filesの両方を指定した場合、Fieldの一覧はDataset Text Filesの内容が優先します（データセットに無いArchitect CRFのFieldはCRF Specに作成されません）。各Fieldのプロパティの内容やCodelistの内容はArchitect CRFの内容が優先します。
-* CRF SpecとArchitect CRF間のマッピングテーブルは`Mapping_Design_Architect.xlsx`[\*1]を参照してください。
+* CRF SpecとArchitect CRF間のマッピングテーブルは`Mapping_Design_Architect.xlsx`[\*2]を参照してください。
 * データセットからCodelistの内容を生成する際、データセットの最大10,000レコードのみ参照されます。
 * データセットからDataTypeを導出する際、データセットの最初のレコードのみ参照されます。
 
-[\*1] 本文書はGitHubに公開していません。
+[\*1] Architect CRFに関する機能はGitHubに公開していません。  
+[\*2] 本文書はGitHubに公開していません。
 
 #### 1.6. Create eDT Spec from Datasets
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image006.jpg)

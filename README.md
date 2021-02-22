@@ -23,7 +23,7 @@ tsClinical Metadata Desktop Tools is a tool that transforms clinical study metad
 [\*1] Define-XML versions supported by this software is "CDISC Define-XML Specification Version 2.0" and "Analysis Results Metadata Specification Version 1.0 for Define-XML Version 2".  
 [\*2] ODM version supported by this software is "Specification for the Operational Data Model (ODM) Version 1.3.2".  
 [\*3] Architect Loader Draft Spreadsheet by Medidata Rave EDC  
-[\*4] This functionality is not available on GitHub.
+[\*4] Functionality regarding Architect CRF is not available on GitHub.
 
 ### 3. System Requirements of Binary Distribution
 * Microsoft Windows 8.1 and 10

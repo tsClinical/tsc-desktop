@@ -104,7 +104,6 @@ A required OID is missing, or an OID refers to an invalid (non-existing) target.
 * Make sure the Excel file designated in Output Location is not accessed by another program (e.g. the file is already open), otherwise the import will fail.
 
 #### 1.5. Create CRF Spec from Datasets
-(This functionality is not available on GitHub.)  
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image005.jpg)
 
 |Field|Description|
@@ -117,13 +116,14 @@ A required OID is missing, or an OID refers to an invalid (non-existing) target.
 |Text Qualifier|A special character that encloses each column value of Datasets Text Files. Select from " or ' if applicable, or "(None)" if not applicable. Required when Datasets Text Files are entered.|
 |Output Location|Select a folder in which an Excel file is created. The default file name "crf_spec.xlsx" is automatically set, but it can be changed.|
 
-* A user can create CRF Spec from either or both Architect CRF and/or Datasets Text Files.
+* A user can create CRF Spec from either or both Architect CRF and/or Datasets Text Files. [\*1]
 * When both Architect CRF and Datasets Text Files are entered, the tool creates a list of Fields based on Datasets Text Files (i.e. fields defined in Architect CRF but not found in Datasets are not created in the CRF Spec). Properties of each field is set from Architect CRF if available.
-* See `Mapping_Design_Architect.xlsx`[\*1] for the mapping table between CRF Spec and Architect CRF.
+* See `Mapping_Design_Architect.xlsx`[\*2] for the mapping table between CRF Spec and Architect CRF.
 * The maximum records to be considered when Codelists are derived from a dataset are 10,000 records.
 * Only the first record is considered when DataTypes are derived from a dataset.
 
-[\*1] This document is not available on GitHub.
+[\*1] Functionality regarding Architect CRF is not available on GitHub.  
+[\*2] This document is not available on GitHub.
 
 #### 1.6. Create eDT Spec from Datasets
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image006.jpg)

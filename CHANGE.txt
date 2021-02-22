@@ -1,0 +1,101 @@
+﻿========================================
+tsClinical Metadata Desktop Tools v1.0.3
+    Released on: February 21, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) AdoptOpenJDK is now bundled with the binary distribution in place
+    of OpenJDK.
+(2) In the [Convert from Excel to Define-XML] menu, the algorithm to
+    create variable-level metadata of SUPP-- datasets from an Excel
+    file of the SDTM AutoSUPP format has been changed as below:
+    - Origin of RDOMAIN is "Assigned".
+    - Origin of QVAL is always empty.
+    - DataType of QVAL is the same value as subordinating value-level
+      data types if they are consistent, or "text" if they vary.
+    - Length of QVAL is empty if the derived DataType is neither
+      "integer" nor "float".
+    - SignificantDigits of QVAL is produced when DataType is "float".
+    - Length of QEVAL is derived from values in the Evaluator column.
+(3) The default value of the oidMode property, referenced from the
+    [Convert from Excel to ODM-XML] has been changed to "EXACT".
+(4) In the Excel file produced from the [Convert from ODM-XML to Excel]
+    menu, the incorrect column name of "Formal Expression Context" in
+    the CONDITION sheet has been updated.
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.2
+    Released on: October 25, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) The tool now uses Opencsv 5.2.1 to read text files in the [Create
+    CRF Spec from Datasets] and [Create eDT Spec from Datasets] menus.
+(2) The [Create CRF Spec from Datasets] menu now creates a codelist
+    with 0 and 1 for items with its ControlType is CheckBox, when
+    Architect CRF is specified.
+(3) The [Create CRF Spec from Datasets] menu now sets IsLog=TRUE to
+    Common Variables as shown in the EDC_KEYS sheet.
+(4) The [Create CRF Spec from Datasets] menu failed to create a codelist
+    for items that ends with "_STD" when Architect CRF is specified.
+    The issue has been fixed.
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.1
+    Released on: September 28, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) Check to "Include Result Metadata" in the [Convert from Excel to
+    Define-XML] was not saved when the tool exited.
+    The issue has been fixed.
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.0
+    Released on: June 26, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) OpenJDK is now bundled with the tool, so that the software can been
+    used on a PC without Java installed.
+(2) GUI design of the tool has now been renovated.
+(3) A new menu [Create CRF Spec from Datasets] has been added.
+(4) A new menu [Create eDT Spec from Datasets] has been added.
+(5) The [Convert from Excel to ODM-XML] menu creates ItemGroupDef
+    automatically when no ItemGroup is defined for each form in the
+    FIELD sheet. ID of the ItemGroupDef was FormOID + "_DEFAULT_n"
+    (n was a sequential number) but has been changed to FormOID.
+(6) The issue that the [Convert from Excel to ODM-XML] menu could
+    create ItemDefs of the same ItemOID has been fixed.
+
+======================================
+tsClinical Define.xml Generator v1.4.2
+    Released on: December 3, 2019
+======================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) When multiple Where Clauses are defined for a single VLM, the tool
+    now supports the following two formats in Value part of the VALUE
+    sheet (i.e. the VALUE sheet excluding the WhereClause part).
+    i  Fill out only the first row of the Value part for each VLM
+    ii Fill out same values in all rows of the Value part for each VLM
+(2) The Generate ODM functionality creates ItemGroupDef automatically
+    when no ItemGroup is defined for each form in the FIELD sheet.
+    ID of the ItemGroupDef was "_DEFAULT_n" (n was a sequential number)
+    but has been changed to FormOID + "_DEFAULT_n".
+
+======================================
+tsClinical Define.xml Generator v1.4.1
+    Released on: October 24, 2017
+======================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) The issue that the VALUE_DELIMITER configuration did not work with
+    the Import Define.xml functionality has been fixed. v1.4.0 always
+    used "," as a value delimiter.
