@@ -6,11 +6,20 @@ tags: []
 # tsClinical Metadata Desktop Tools
 Version 1.0.3
 
-### 1. License
+### Table of Contents
+[1 License](#1-license)  
+[2 Functional Overview](#2-functional-overview)  
+[3 System Requirements of Binary Distribution](#3-system-requirements-of-binary-distribution)  
+[4 Dependencies](#4-dependencies)  
+[5 Trademarks and Logos](#5-trademarks-and-logos)  
+[6 Downloading and Running Binary Distribution](#6-downloading-and-running-binary-distribution)  
+[7 How to Use](#7-how-to-use)  
+
+### 1 License
 
 Licensed under the Apache License, Version 2.0. See the `LICENSE` file in the top directory for details.
 
-### 2. Functional Overview
+### 2 Functional Overview
 tsClinical Metadata Desktop Tools is a tool that transforms clinical study metadata from Excel to standard formats or those of specific systems, and vice verca. The tool has been developed (1) to assist regulatory submissions of new drugs and (2) to interface with [tsClinical Metadata](https://www.fujitsu.com/jp/solutions/industry/life-sciences/products/drug-development/metadata/).
 
 |Icon|Menu|Submenu|Explanation|
@@ -25,11 +34,11 @@ tsClinical Metadata Desktop Tools is a tool that transforms clinical study metad
 [\*3] Architect Loader Draft Spreadsheet by Medidata Rave EDC  
 [\*4] Functionality regarding Architect CRF is not available on GitHub.
 
-### 3. System Requirements of Binary Distribution
+### 3 System Requirements of Binary Distribution
 * Microsoft Windows 8.1 and 10
 * Microsoft Excel 2013 and later (the file extension must be .xlsx)
 
-### 4. Dependencies
+### 4 Dependencies
 The binary distribution contains the following resources. AdoptOpenJDK is avaiable under the GPLv2 + Classpath Exception license. All the other resources are available under the Apache License, Version 2.0.
 * AdoptOpenJDK 11.0.9
 * Material Design Icons
@@ -52,13 +61,13 @@ The binary distribution contains the following resources. AdoptOpenJDK is avaiab
 * xml-apis-1.3.04.jar
 * xmlbeans-2.6.0.jar
 
-### 5. Trademarks and Logos
+### 5 Trademarks and Logos
 Fujitsu Limited reserves all rights to trademakrs and logos included in the binary distribution.
 
-### 6. Downloading and Running Binary Distribution
+### 6 Downloading and Running Binary Distribution
 Download the binary distribution (.zip file) from the [Download](https://md-eval.tsclinical.global.fujitsu.com/cdisc/public/dl) page, unzip and run `tsc-desktop.bat`.
 
-### 7. How to Use
+### 7 How to Use
 See `USERS-GUIDE` in the `docs` directory of this software.
 
 ---
