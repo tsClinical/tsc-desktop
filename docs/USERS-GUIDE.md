@@ -196,7 +196,6 @@ A user can configure the tool by editing the `main.properties` file (created aut
 |e2dStylesheetLocation|Equal to "Stylesheet Location (.xsl)" on the Convert from Excel to Define-XML screen.|
 |e2dDataSourceLocation|Equal to "Data Source Location" on the Convert from Excel to Define-XML screen.|
 |e2dOutputLocation|Equal to "Output Location" on the Convert from Excel to Define-XML screen.|
-|d2eDefineVersion|Equal to "Define-XML Version" on the Convert from Define-XML to Excel screen.|
 |d2eDatasetType|Equal to "Dataset Type" on the Convert from Define-XML to Excel screen.|
 |d2eSeparateSheet|Equal to "Load Methods/Comments to Separate Sheets" on the Convert from Define-XML to Excel screen.|
 |d2eMergeNSVtoParent|Equal to "Merge NSV to Parent Dataset" on the Convert from Define-XML to Excel screen.|
