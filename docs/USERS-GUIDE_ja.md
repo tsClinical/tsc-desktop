@@ -4,7 +4,7 @@ tags: []
 ---
 
 # User's Guide - tsClinical Metadata Desktop Tools
-Version 1.0.3
+Version 1.1.0
 
 ### 1. 各機能の説明
 #### 1.1. Convert from Excel to Define-XML
@@ -12,28 +12,33 @@ Version 1.0.3
 
 |入力項目|説明|
 |:---|:---|
-|Define-XML Version|作成するDefine-XMLのバージョンを指定します。「2.0.0」のみ選択できます。|
+|Define-XML Version|作成するDefine-XMLのバージョンを指定します。「2.0.0」「2.1.n」から選択します。|
 |Dataset Type|「SDTM」「ADaM」「SEND」から選択します。|
 |Include Result Metadata|Dataset TypeがADaMの場合のみ指定できます。チェックを付けるとAnalysis Result Metadataを含んだDefine-XMLが作成されます。|
-|XML Encoding|作成するDefine-XMLの文字コードを指定します。この文字コードでDefine-XMLが作成され、またXMLヘッダーのencodingに書き込まれます。「UTF-8」のみ選択できます。|
+|XML Encoding|作成するDefine-XMLの文字コードを指定します。この文字コードでDefine-XMLが作成され、またXMLヘッダーのencodingに書き込まれます。「UTF-8」「ISO-8859-1」「Shift_JIS」から選択します。|
 |Stylesheet Location (.xsl)|Define-XMLのスタイルシートの相対パスを指定します。この値がXMLスタイルシート参照のhrefに書き込まれます。|
 |Data Source Location|Define-XMLの基になる情報を記載したExcelファイル（ファイル形式は.xlsxのみ）を指定します。Excelファイルは本ソフトウェアの`excel`フォルダに格納されているテンプレートを基に作成してください。|
 |Output Location|Define-XMLが作成されるフォルダを指定します。ファイル名はデフォルトで"define.xml"と表示されますが、変更することができます。|
 
 * ExcelとDefine-XML間のマッピングルールは`Mapping_Design_Define.xlsx`を参照してください。
-* Excelの一部のカラムは、１つのセル内に「;」で区切ることで複数の情報を列記することができます。上記の区切り文字を変更したい場合は、本ソフトウェアの`properties`フォルダにある`main.properties`ファイルをテキストエディタで開き、"valueDelimiter"の値を変更します。CRF Page Reference列に複数のCRFページを記載する場合は、Define-XMLの規程通り、「;」ではなくスペースで区切ってください（例：「9 14 22」）。どのカラムが複数入力可能かは`Mapping_Design_Define.xlsx`を参照してください。
+* Excelの列名は、大文字/小文字および空白は無視されます。例えば、「DataType」「Data Type」「Data type」はいずれも正しいカラム名として認識されます。
+* Excelの一部の列は、１つのセル内に「;」で区切ることで複数の情報を列記することができます。上記の区切り文字を変更したい場合は、本ソフトウェアの`properties`フォルダにある`main.properties`ファイルをテキストエディタで開き、"valueDelimiter"の値を変更します。CRF Page Reference列に複数のCRFページを記載する場合は、Define-XMLの規程通り、「;」ではなくスペースで区切ってください（例：「9 14 22」）。どのカラムが複数入力可能かは`Mapping_Design_Define.xlsx`を参照してください。
 * Excelファイルの各セルの書式設定（標準形式）には「標準」または「文字列」を選択してください。これ以外の書式（「日付」や「ユーザ定義」、SUM関数等の計算式等）を設定した場合、Excelに表示されている文字とは異なる値がDefine-XMLに反映される可能性があります。
 * SDTMのNon-Standard Variables (NSVs)のExcel記載方法は、(1) SUPP--データセットを定義する方法、(2) SDTMの通常の変数と同様に親データセットにNSVを記載する方法、があります。(2)の方法で記載した場合、以下のカラムを記載することで、本ソフトウェアはSUPP--データセット用の情報をDefine-XMLに自動生成します。詳細なマッピングルールは`Mapping_Design_Define.xlsx`のSUPPQUALシートを参照してください。
   * DATASETシートのHas SUPP列（※Has SUPP="Yes"の場合、Define-XMLにSUPP--データセットを生成します）
   * VARIABLEシートのIs SUPP列（※Is SUPP="Yes"の場合、そのデータセットのSUPP--のQVALのValue Level Metadataを生成する。）
+* MethodおよびCommentのExcel記載方法は、(1) Method/Commentを各シート（DATASET, VARIABLE, VALUE等）に記載する方法、(2) Method/CommentをそれぞれMETHOD/COMMENTシートに記載し、各シートからMethodOID/CommentOIDでリンクする方法、があります。
+* Define-XML 2.1.nでサポートされているNo Data列は、Define-XML 2.0.0でも使用することができます。Define-XML 2.0.0で使用した場合、No Data列がYesであるDataset, Variable, VLMはDefine-XMLに出力されません。
+* Repeat N列は繰返し変数（TSVALn, COVALn, RACEn等）を複製するために使用することができます。例えば、COVAL変数のRepeat N列の値が5であった場合、本機能はCOVAL, COVAL1, ..., COVAL5をDefine-XMLに出力します。
 
 #### 1.2. Convert from Define-XML to Excel
-![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image002.jpg)
+![](https://github.com/tsClinical/tsc-desktop/raw/1.1.0/docs/images/image002.jpg)
 
 |入力項目|説明|
 |:---|:---|
-|Define-XML Version|インポートするDefine-XMLのバージョンを指定します。「2.0.0」のみ選択できます。|
 |Dataset Type|「SDTM」「ADaM」「SEND」から選択します。|
+|Load Methods/Comments to Separate Sheets|チェックすると、MethodおよびCommentをそれぞれMETHOD/COMMENTシートにインポートします。チェックを外すと、各シート（DATASET, VARIABLE, VALUE等）にインポートします。|
+|Merge NSV to Parent Dataset|チェックすると、NSVを親データセットにインポートします。チェックを外すと、SUPP--データセットにインポートします。|
 |Data Source Location|インポートするDefine-XMLのxmlファイル（ファイル形式は.xmlのみ）を指定します。|
 |Output Location|Excelが作成されるフォルダを指定します。ファイル名はデフォルトで"define.xlsx"と表示されますが、変更することができます。|
 
@@ -42,11 +47,23 @@ Version 1.0.3
   * define.xmlが整形式(well-formed)でない
   * 必須であるOID項目が省略されている、またはOIDの参照先に対応するOIDが存在しない
 * Output Locationに設定したExcelファイルが開かれているなど、他のプログラムからアクセスされている場合は書き込みができません。
-* 本ソフトウェアは、SDTMのNon-Standard Variables (NSVs)をExcelにインポートする際、"SUPP--"データセットではなく、以下の要領で親データセットにNSVを追加します。詳細なマッピングルールは`Mapping_Design_Define.xlsx`のSUPPQUALシートを参照してください。
+* Load Methods/Comments to Separate Sheetsをチェックした場合、本機能はMethodおよびCommentをそれぞれMETHOD/COMMENTシートに、MethodOIDおよびCommentOIDを各シート（DATASET, VARIABLE, VALUE等）にインポートします。
+* Merge NSV to Parent Datasetをチェックした場合、本機能はSDTMのNon-Standard Variables (NSVs)をExcelにインポートする際、"SUPP--"データセットではなく、以下の要領で親データセットにNSVを追加します。詳細なマッピングルールは`Mapping_Design_Define.xlsx`のSUPPQUALシートを参照してください。
   * DATASETシートのHas SUPP列に"Yes"を設定
   * VARIABLEシートのIs SUPP列に"Yes"を設定
 
-#### 1.3. Convert from Excel to ODM-XML
+#### 1.3. Convert from XML to HTML
+![](https://github.com/tsClinical/tsc-desktop/raw/1.1.0/docs/images/image008.jpg)
+
+|入力項目|説明|
+|:---|:---|
+|XML File Location (.xml)|HTMLに変換したいXMLファイルを指定します。|
+|Style Sheet Location (.xsl)|XMLファイルに適用するスタイルシートを指定します。|
+|Output Location|HTMLファイルが作成されるフォルダを指定します。ファイル名はデフォルトで"define.html"と表示されますが、変更することができます。|
+
+* 本機能は単純に、指定されたXMLファイルに指定されたスタイルシートを適用することでHTMLファイルを作成します。
+
+#### 1.4. Convert from Excel to ODM-XML
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image003.jpg)
 
 |入力項目|説明|
@@ -89,7 +106,7 @@ Version 1.0.3
 * FIELDシートの各フォームにItemGroupの定義が含まれていない（各フォームに対して「Level」の値が0から開始している）場合、ODM-XMLで必須であるため本ソフトウェアは自動的にItemGroupを作成します。この時、「ID」はFormOID、「Name」は"DEFAULT_n"（nは連番）、「Mandatory」および「Repeating」はFORMシートと同じ値を使用します。
 
 
-#### 1.4. Convert from ODM-XML to Excel
+#### 1.5. Convert from ODM-XML to Excel
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image004.jpg)
 
 |入力項目|説明|
@@ -104,12 +121,12 @@ Version 1.0.3
   * 必須であるOID項目が省略されている、またはOIDの参照先に対応するOIDが存在しない
 * Output Locationに設定したExcelファイルが開かれているなど、他のプログラムからアクセスされている場合は書き込みができません。
 
-#### 1.5. Create CRF Spec from Datasets
-![](images/image005.jpg)
+#### 1.6. Create CRF Spec from Datasets
+![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image005.jpg)
 
 |入力項目|説明|
 |:---|:---|
-|Architect CRF Location (.xlsx)|Medidata Rave EDCのArchitect Loader Draft Spreadsheet（ファイル形式は.xlsxのみ）を指定します。|
+|Architect CRF Location (.xlsx)|Medidata Rave EDCのArchitect Loader Draft Spreadsheet（ファイル形式は.xlsxのみ）を指定します。[\*1]|
 |Datasets Text Files|EDCから出力したデータセットファイル（表形式のテキストファイル、複数可）を指定します。|
 |# of Header Lines|Datasets Text Filesを設定した場合に入力が必要です。テキストファイルのヘッダー行の数（1以上）を入力します。|
 |Character Encoding	Datasets|Text Filesを設定した場合に入力が必要です。テキストファイルの文字コードを「UTF-8」「ISO-8859-1」「Shift_JIS」から指定します。|
@@ -117,16 +134,16 @@ Version 1.0.3
 |Text Qualifier|Datasets Text Filesを設定した場合に入力が必要です。各列の囲み文字を「"」「'」から選択します。囲み文字が無い場合は「(None)」を選択します。|
 |Output Location|Excelが作成されるフォルダを指定します。ファイル名はデフォルトで"crf_spec.xlsx"と表示されますが、変更することができます。|
 
-* Architect CRFまたはDatasets Text Filesのどちらか、または両方を指定してCRF Specを作成することができます。[\*1]
+* Architect CRFまたはDatasets Text Filesのどちらか、または両方を指定してCRF Specを作成することができます。
 * Architect CRFとDatasets Text Filesの両方を指定した場合、Fieldの一覧はDataset Text Filesの内容が優先します（データセットに無いArchitect CRFのFieldはCRF Specに作成されません）。各Fieldのプロパティの内容やCodelistの内容はArchitect CRFの内容が優先します。
 * CRF SpecとArchitect CRF間のマッピングテーブルは`Mapping_Design_Architect.xlsx`[\*2]を参照してください。
 * データセットからCodelistの内容を生成する際、データセットの最大10,000レコードのみ参照されます。
 * データセットからDataTypeを導出する際、データセットの最初のレコードのみ参照されます。
 
-[\*1] Architect CRFに関する機能はGitHubに公開していません。  
+[\*1] この項目は本ツールのOSS版では無効化されています。
 [\*2] 本文書はGitHubに公開していません。
 
-#### 1.6. Create eDT Spec from Datasets
+#### 1.7. Create eDT Spec from Datasets
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image006.jpg)
 
 |入力項目|説明|
@@ -143,7 +160,7 @@ Version 1.0.3
 * データセットからCodelistの内容を生成する際、データセットの最大10,000レコードのみ参照されます。
 * データセットからDataTypeを導出する際、データセットの最初のレコードのみ参照されます。
 
-#### 1.7. Validate XML against XML Schema
+#### 1.8. Validate XML against XML Schema
 ![](https://github.com/tsClinical/tsc-desktop/raw/master/docs/images/image007.jpg)
 
 |入力項目|説明|
@@ -161,6 +178,7 @@ Version 1.0.3
 |入力項目|説明|
 |:---|:---|
 |defineStudyTableName|Define-XMLの生成においてExcelのStudyに関する情報を記載するシート名を指定します。|
+|defineStandardTableName|Define-XMLの生成においてExcelのStandardに関する情報を記載するシート名を指定します。|
 |defineDocumentTableName|Define-XMLの生成においてExcelのDocumentに関する情報を記載するシート名を指定します。|
 |defineDatasetTableName|Define-XMLの生成においてExcelのDomain/Datasetに関する情報を記載するシート名を指定します。|
 |defineVariableTableName|Define-XMLの生成においてExcelのVariableに関する情報を記載するシート名を指定します。|
@@ -169,6 +187,8 @@ Version 1.0.3
 |defineResult2TableName|Define-XMLの生成においてExcelのAnalysis Result Metadataに関する情報（Analysis DatasetおよびWhere Clause）を記載するシート名を指定します。|
 |defineDictionaryTableName|Define-XMLの生成においてExcelのDictionaryに関する情報を記載するシート名を指定します。|
 |defineCodelistTableName|Define-XMLの生成においてExcelのCodelistに関する情報を記載するシート名を指定します。|
+|defineMethodTableName|Define-XMLの生成においてExcelのMethodに関する情報を記載するシート名を指定します。|
+|defineCommentTableName|Define-XMLの生成においてExcelのCommentに関する情報を記載するシート名を指定します。|
 |valueDelimiter|Define-XMLの生成においてExcelの１つのセルに複数の値を記入する場合に区切り文字として取り扱われる文字を指定します。デフォルト値は「;」です。|
 |e2dDefineVersion|Convert from Excel to Define-XML画面上の「Define-XML Version」と同じ項目です。|
 |e2dDatasetType|Convert from Excel to Define-XML画面上の「Dataset Type」と同じ項目です。|
@@ -177,10 +197,14 @@ Version 1.0.3
 |e2dStylesheetLocation|Convert from Excel to Define-XML画面上の「Stylesheet Location (.xsl)」と同じ項目です。|
 |e2dDataSourceLocation|Convert from Excel to Define-XML画面上の「Data Source Location」と同じ項目です。|
 |e2dOutputLocation|Convert from Excel to Define-XML画面上の「Output Location」と同じ項目です。|
-|d2eDefineVersion|Convert from Define-XML to Excel画面上の「Define-XML Version」と同じ項目です。|
 |d2eDatasetType|Convert from Define-XML to Excel画面上の「Dataset Type」と同じ項目です。|
+|d2eSeparateSheet|Convert from Define-XML to Excel画面上の「Load Methods/Comments to Separate Sheets」と同じ項目です。|
+|d2eMergeNSVtoParent|Convert from Define-XML to Excel画面上の「Merge NSV to Parent Dataset」と同じ項目です。|
 |d2eDataSourceLocation|Convert from Define-XML to Excel画面上の「Data Source Location」と同じ項目です。|
 |d2eOutputLocation|Convert from Define-XML to Excel画面上の「Output Location」と同じ項目です。|
+|x2hXmlLocation|Convert from XML to HTML画面上の「XML File Location (.xml)」と同じ項目です。|
+|x2hXslLocation|Convert from XML to HTML画面上の「Style Sheet Location (.xsl)」と同じ項目です。|
+|x2hOutputLocation|Convert from XML to HTML画面上の「Output Location」と同じ項目です。|
 |odmStudyTableName|ODM-XMLの生成においてExcelのStudyに関する情報を記載するシート名を指定します。|
 |odmUnitTableName|ODM-XMLの生成においてExcelのUnitに関する情報を記載するシート名を指定します。|
 |odmEventTableName|ODM-XMLの生成においてExcelのEventに関する情報を記載するシート名を指定します。|
@@ -221,5 +245,5 @@ Version 1.0.3
 |validateSchemaLocation|Validate XML against XML Schema画面上の「Schema Location (.xsd)」と同じ項目です。|
 
 ---
-Copyright (c) 2020-2021 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2022 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.
