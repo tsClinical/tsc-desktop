@@ -4,7 +4,7 @@ tags: []
 ---
 
 # tsClinical Metadata Desktop Tools
-Version 1.0.3
+Version 1.1.0
 
 ### Table of Contents
 [1 License](#1-license)  
@@ -24,23 +24,23 @@ tsClinical Metadata Desktop Tools is a tool that transforms clinical study metad
 
 |Icon|Menu|Submenu|Explanation|
 |:---|:---|:---|:---|
-|![](https://github.com/tsClinical/tsc-desktop/raw/master/resources/material-icons/custom_integration_instructions_black_48dp.png)|Define-XML|(1) Convert from Excel to Define-XML <br> (2) Convert from Define-XML to Excel|(1) The submenu allows you to create Define-XML [\*1] from SDTM/ADaM Spec (Excel) in the tsClinical Metadata format. <br> (2) The submenu allows you to create SDTM/ADaM Spec (Excel) in the tsClinical Metadata format from Define-XML.|
+|![](https://github.com/tsClinical/tsc-desktop/raw/master/resources/material-icons/custom_integration_instructions_black_48dp.png)|Define-XML|(1) Convert from Excel to Define-XML <br> (2) Convert from Define-XML to Excel <br> (3) Convert from XML to HTML|(1) The submenu allows you to create Define-XML [\*1] from SDTM/ADaM Spec (Excel) in the tsClinical Metadata format. <br> (2) The submenu allows you to create SDTM/ADaM Spec (Excel) in the tsClinical Metadata format from Define-XML. <br> (3) The submenu allows you to create an HTML file from Define-XML and a style sheet.|
 |![](https://github.com/tsClinical/tsc-desktop/raw/master/resources/material-icons/custom_ballot_black_48dp.png)|CRF|(1) Convert from Excel to ODM-XML <br> (2) Convert from ODM-XML to Excel <br> (3) Create CRF Spec from Datasets|(1) The submenu allows you to create ODM-XML [\*2] from CRF Spec (Excel) in the tsClinical Metadata format. <br> (2) The submenu allows you to create CRF Spec (Excel) in the tsClinical Metadata format from ODM-XML <br> (3) The submenu allows you to create CRF Spec (Excel) in the tsClinical Metadata format from dataset files in the text format and Architect CRF (Excel). [\*3]\[*4]|
 |![](https://github.com/tsClinical/tsc-desktop/raw/master/resources/material-icons/custom_table_view_black_48dp.png)|eDT|(1) Create eDT Spec from Datasets|(1) The submenu allows you to create eDT Spec (Excel) in the tsClinical Metadata format from a dataset file in the text format.|
 |![](https://github.com/tsClinical/tsc-desktop/raw/master/resources/material-icons/custom_fact_check_black_48dp.png)|Validation|(1) Validate XML against XML Schema|(1) The submenu allows you to validate a XML file (e.g. Define-XML, ODM-XML) against its XML schema.|
 
-[\*1] Define-XML versions supported by this software is "CDISC Define-XML Specification Version 2.0" and "Analysis Results Metadata Specification Version 1.0 for Define-XML Version 2".  
-[\*2] ODM version supported by this software is "Specification for the Operational Data Model (ODM) Version 1.3.2".  
+[\*1] Define-XML versions supported by this software are 2.0.0, 2.1.n and "Analysis Results Metadata Specification Version 1.0 for Define-XML Version 2".  
+[\*2] ODM version supported by this software is 1.3.2.  
 [\*3] Architect Loader Draft Spreadsheet by Medidata Rave EDC  
 [\*4] Functionality regarding Architect CRF is not available on GitHub.
 
 ### 3 System Requirements of Binary Distribution
-* Microsoft Windows 8.1 and 10
+* Microsoft Windows 8.1, 10 and 11
 * Microsoft Excel 2013 and later (the file extension must be .xlsx)
 
 ### 4 Dependencies
 The binary distribution contains the following resources. AdoptOpenJDK is avaiable under the GPLv2 + Classpath Exception license. All the other resources are available under the Apache License, Version 2.0.
-* AdoptOpenJDK 11.0.9
+* AdoptOpenJDK 11.0.16
 * Material Design Icons
 * commons-beanutils-1.9.4.jar
 * commons-codec-1.10.jar
@@ -65,11 +65,11 @@ The binary distribution contains the following resources. AdoptOpenJDK is avaiab
 Fujitsu Limited reserves all rights to trademakrs and logos included in the binary distribution.
 
 ### 6 Downloading and Running Binary Distribution
-Download the binary distribution (.zip file) from the [Download](https://md-eval.tsclinical.global.fujitsu.com/cdisc/public/dl) page, unzip and run `tsc-desktop.bat`.
+Download the binary distribution (.zip file) from the [Download](https://md-eval.tsclinical.global.fujitsu.com/cdisc/public/dl) page, unzip and run `tsc-desktop.bat` or `tsc-desktop.exe`. The EXE file is signed with a digital signature so that the Microsoft SmartScreen on Windows 10 or later does not show warning when  executing the tool.
 
 ### 7 How to Use
 See `USERS-GUIDE` in the `docs` directory of this software.
 
 ---
-Copyright (c) 2020-2021 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2022 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.
