@@ -36,6 +36,7 @@ Version 1.1.0
 
 |入力項目|説明|
 |:---|:---|
+|Define-XML Version|インポートするDefine-XMLのバージョンを指定します。「2.0.0」「2.1.n」から選択します。|
 |Dataset Type|「SDTM」「ADaM」「SEND」から選択します。|
 |Load Methods/Comments to Separate Sheets|チェックすると、MethodおよびCommentをそれぞれMETHOD/COMMENTシートにインポートします。チェックを外すと、各シート（DATASET, VARIABLE, VALUE等）にインポートします。|
 |Merge NSV to Parent Dataset|チェックすると、NSVを親データセットにインポートします。チェックを外すと、SUPP--データセットにインポートします。|
