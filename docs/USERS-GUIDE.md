@@ -36,6 +36,7 @@ Version 1.1.0
 
 |Field|Description|
 |:---|:---|
+|Define-XML Version|The version of Define-XML to import. Select from "2.0.0" or "2.1.n".|
 |Dataset Type|Select from "SDTM", "ADaM", or "SEND".|
 |Load Methods/Comments to Separate Sheets|Check to import methods and comments into the METHOD and COMMENT sheets respectively. Uncheck to import them into each sheet (DATASET, VARIABLE, VALUE, etc.)|
 |Merge NSV to Parent Dataset|Check to import Non-Standard Variables (NSVs) into parent datasets. Uncheck to import NSVs into SUPP-- datasets.|
