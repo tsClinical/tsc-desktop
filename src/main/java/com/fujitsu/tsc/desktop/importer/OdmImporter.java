@@ -85,8 +85,8 @@ public class OdmImporter {
 		} else {
 			sax_factory = SAXParserFactory.newInstance();
 //			schema = sch_factory.newSchema(new File("./schema/soft/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
-//			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/soft/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
-			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/soft/fujitsu-ddedcp-1.0/ddedcp1-0-0.xsd"));
+			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/soft/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
+//			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/soft/fujitsu-ddedcp-1.0/ddedcp1-0-0.xsd"));
 		}
 
 		sax_factory.setSchema(schema);
