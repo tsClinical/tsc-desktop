@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.cdisc.org/ns/def/v2.1"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:odm="http://www.cdisc.org/ns/odm/v1.3"
+  xmlns:def="http://www.cdisc.org/ns/def/v2.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:nci="http://ncicb.nci.nih.gov/xml/odm/EVS/CDISC"
+  elementFormDefault="qualified" attributeFormDefault="unqualified" version="2.1.0">
+
+  <!--
+      Define-XML 2.1.0 define-enumerations schema draft
+      as developed by the CDISC XML Technologies Team
+  -->
+
+  <xs:annotation>
+    <xs:documentation>Define-XML 2.1.0 define-enumerations schema as developed by the CDISC Data Exchange Standards Team</xs:documentation>
+  </xs:annotation>
+
+  <xs:import namespace="http://www.cdisc.org/ns/odm/v1.3"
+    schemaLocation="../cdisc-odm-1.3.2/ODM1-3-2-foundation.xsd"/>
+
+  <!--
+     +===========================================================================+
+     | Simple Types/Enumerations                                                 |
+     +===========================================================================+
+   -->
+
+  <xs:simpleType name="ODMContext">
+    <xs:annotation>
+      <xs:documentation>Context in which the Define-XML document is used.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="Submission"/>
+      <xs:enumeration value="Other"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="DefineVersion">
+    <xs:annotation>
+      <xs:documentation>Version of Define-XML that the file conforms to.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="2.1.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="ItemGroupClass">
+    <xs:annotation>
+      <xs:documentation>General observation class. Defined by CDISC/NCI GNRLOBSC (General Observation Class)</xs:documentation>
+      <xs:appinfo><Alias Name="C103329" Context="nci:ExtCodeID"/></xs:appinfo>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="ADAM OTHER">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103375" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="BASIC DATA STRUCTURE">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103371" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="EVENTS">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103372" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDINGS">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103373" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="FINDINGS ABOUT">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C135396" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTEGRATED BASIC DATA STRUCTURE">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C132357" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTEGRATED OCCURRENCE DATA STRUCTURE">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C132358" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTEGRATED SUBJECT LEVEL">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C132359" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="INTERVENTIONS">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103374" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="OCCURRENCE DATA STRUCTURE">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C123454" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="RELATIONSHIP">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103376" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SPECIAL PURPOSE">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103377" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="STUDY REFERENCE">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C147271" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="SUBJECT LEVEL ANALYSIS DATASET">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103378" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="TRIAL DESIGN">
+        <xs:annotation>
+          <xs:appinfo><Alias Name="C103379" Context="nci:ExtCodeID"/></xs:appinfo>
+        </xs:annotation>
+      </xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ItemGroupSubClass">
+    <xs:annotation>
+      <xs:documentation>Sub class of a general observation class. To be defined by CDISC/NCI</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="TIME-TO-EVENT"/>
+      <xs:enumeration value="ADVERSE EVENT"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name = "ItemGroupClassSubClass">
+    <xs:annotation>
+      <xs:documentation>Sub class of a general observation class. Union of ItemGroupClass and ItemGroupSubClass</xs:documentation>
+    </xs:annotation>
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base = "def:ItemGroupClass" />
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base = "def:ItemGroupSubClass" />
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+  
+
+
+  <xs:simpleType name="OriginType">
+    <xs:annotation>
+      <xs:documentation>Type of origin.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="Assigned"/>
+      <xs:enumeration value="Collected"/>
+      <xs:enumeration value="Derived"/>
+      <xs:enumeration value="Not Available"/>
+      <xs:enumeration value="Predecessor"/>
+      <xs:enumeration value="Protocol"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="OriginSource">
+    <xs:annotation>
+      <xs:documentation>Source of origin.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="Investigator"/>
+      <xs:enumeration value="Sponsor"/>
+      <xs:enumeration value="Subject"/>
+      <xs:enumeration value="Vendor"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PDFPageType">
+    <xs:annotation>
+      <xs:documentation>Type of PDF reference (Physical reference or named destination).</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="NamedDestination"/>
+      <xs:enumeration value="PhysicalRef"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="StandardName">
+    <xs:annotation>
+      <xs:documentation>Name of Standard (Extensible).</xs:documentation>
+    </xs:annotation>
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="odm:text">
+          <xs:enumeration value="ADaMIG"/>
+          <xs:enumeration value="CDISC/NCI"/>
+          <xs:enumeration value="SDTMIG"/>
+          <xs:enumeration value="SDTMIG-AP"/>
+          <xs:enumeration value="SDTMIG-MD"/>
+          <xs:enumeration value="SDTMIG-PGx"/>
+          <xs:enumeration value="SENDIG"/>
+          <xs:enumeration value="SENDIG-DART"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="odm:text"/>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:simpleType name="StandardPublishingSet">
+    <xs:annotation>
+      <xs:documentation>Set of pulished files of Standard when Type="CT" (e.g. ADaM, CDASH, SDTM, SEND, ...) (Extensible).</xs:documentation>
+    </xs:annotation>
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="odm:text">
+          <xs:enumeration value="ADaM"/>
+          <xs:enumeration value="CDASH"/>
+          <xs:enumeration value="COA"/>
+          <xs:enumeration value="QRS"/>
+          <xs:enumeration value="QS"/>
+          <xs:enumeration value="SDTM"/>
+          <xs:enumeration value="SEND"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="odm:text"/>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:simpleType name="StandardStatus">
+    <xs:annotation>
+      <xs:documentation>Status of Standard.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="Draft"/>
+      <xs:enumeration value="Provisional"/>
+      <xs:enumeration value="Final"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="StandardType">
+    <xs:annotation>
+      <xs:documentation>Type of Standard (Extensible).</xs:documentation>
+    </xs:annotation>
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="odm:text">
+          <xs:enumeration value="CT"/>
+          <xs:enumeration value="IG"/>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="odm:text"/>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:simpleType name="ExternalCodeListDictionary">
+    <xs:annotation>
+      <xs:documentation>Dictionary Name (Extensible). Defined by CDISC/NCI DICTNAM (Dictionary Name)</xs:documentation>
+      <xs:appinfo><Alias Name="C66788" Context="nci:ExtCodeID"/></xs:appinfo>
+    </xs:annotation>
+    <xs:union>
+      <xs:simpleType>
+        <xs:restriction base="odm:text">
+          <xs:enumeration value="COSTART">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C49471" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="ICD">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C49474" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="LOINC">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C49476" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="MEDDRA">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C43820" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="SNOMED">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C53489" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="WHOART">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C49468" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+          <xs:enumeration value="WHODD">
+            <xs:annotation>
+              <xs:appinfo><Alias Name="C49475" Context="nci:ExtCodeID"/></xs:appinfo>
+            </xs:annotation>
+          </xs:enumeration>
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType>
+        <xs:restriction base="odm:text"/>
+      </xs:simpleType>
+    </xs:union>
+  </xs:simpleType>
+
+  <xs:simpleType name="YesOnly">
+    <xs:annotation>
+      <xs:documentation>Yes Response.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="odm:text">
+      <xs:enumeration value="Yes"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>
