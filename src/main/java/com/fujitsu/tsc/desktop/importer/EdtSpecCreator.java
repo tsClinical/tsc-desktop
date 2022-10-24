@@ -77,7 +77,7 @@ public class EdtSpecCreator {
 
 	/**
 	 * Scan datasets
-	 * @return
+	 * @return Pair of StudyEdtColumns and StudyEdtCodelists
 	 * @throws IOException
 	 * @throws CsvException 
 	 */
@@ -96,7 +96,7 @@ public class EdtSpecCreator {
 				switch (columnType.getType()) {
 				case DATE:
 					column.date_time_format = columnType.detail;
-					column.unk_date_time_text = StringUtils.defaultString(seaechUnkDateTime(i, columnType.getDetail()));
+					column.unk_date_time_text = StringUtils.defaultString(searchUnkDateTime(i, columnType.getDetail()));
 					break;
 				case STRING:
 				case INTEGER:
@@ -160,7 +160,7 @@ public class EdtSpecCreator {
 	}
 
 	//Find UNK expressions
-	private String seaechUnkDateTime(int columnIdx, String format) {
+	private String searchUnkDateTime(int columnIdx, String format) {
 		List<String> MON = Arrays.asList(new String[] { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" });
 		RegexDateMatcher matcher = null;
 		for (RegexDateMatcher dateMatcher : dateMatchers) {
@@ -247,12 +247,19 @@ public class EdtSpecCreator {
 			return pattern.matcher(str).find();
 		}
 
+		/*
+		 * Return parts of date string (i.e. {"yyyy", "MM", "dd"}) that matches the pattern.
+		 * If the string is different from the pattern, then return empty array. 
+		 * TODO: This code simply returns empty array if date parts are text.
+		 */
 		List<String> getMatchStrings(String str) {
 			Matcher matcher = pattern.matcher(str);
 			List<String> rtn = new ArrayList<>();
-			matcher.find();
-			for (int i = 0; i < matcher.groupCount(); i++) {
-				rtn.add(matcher.group(i + 1));
+			boolean res = matcher.find();
+			if (res) {
+				for (int i = 0; i < matcher.groupCount(); i++) {
+					rtn.add(matcher.group(i + 1));
+				}
 			}
 			return rtn;
 		}
@@ -287,14 +294,14 @@ public class EdtSpecCreator {
 			}
 		}
 		char qualifier = '"';	//default
-		if (StringUtils.length(text_qualifier) > 0) {
+		if (StringUtils.isEmpty(text_qualifier) || "(None)".equals(text_qualifier)) {
+			qualifier = '\b';	//Backspace - use a character that is very unlikely to appear because 'blank' character is not supported by CSVParserBuilder 
+		} else {
 			qualifier = text_qualifier.toCharArray()[0];
 		}
 		char escape = '\\';	//default
-		final CSVParser parser = new CSVParserBuilder()
-				.withSeparator(separator)
-				.withQuoteChar(qualifier)
-				.withEscapeChar(escape).build();
+		CSVParserBuilder builder = new CSVParserBuilder().withSeparator(separator).withQuoteChar(qualifier).withEscapeChar(escape);
+		final CSVParser parser = builder.build();
 		CSVReader reader = new CSVReaderBuilder(new InputStreamReader(new FileInputStream(srcFile), Charset.forName(encoding)))
 				.withCSVParser(parser).build();
 		reader.setErrorLocale(new Locale("en"));

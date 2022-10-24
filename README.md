@@ -49,7 +49,7 @@ The binary distribution contains the following resources. AdoptOpenJDK is avaiab
 * commons-io-2.8.0.jar
 * commons-lang3-3.11.jar
 * commons-logging-1.2.jar
-* commons-text-1.9.jar
+* commons-text-1.10.0.jar
 * curvesapi-1.04.jar
 * log4j-1.2.17.jar
 * opencsv-5.3.jar

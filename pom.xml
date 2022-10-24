@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.fujitsu.tsc.desktop</groupId>
   <artifactId>tsc-desktop</artifactId>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>tsClinical Metadata Desktop Tools</name>
   <url>https://github.com/tsClinical/tsc-desktop</url>
@@ -18,7 +18,7 @@
       </activation>
       <properties>
         <jdkhome>C:/Program Files/Java/jdk1.8.0_192</jdkhome>
-        <jrehome>C:/Program Files/Java/jdk-11.0.9.1+1</jrehome>
+        <jrehome>C:/Program Files/Eclipse Adoptium/jdk-11.0.16.101-hotspot</jrehome>
       </properties>
     </profile>
   </profiles>
@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
-      <version>1.9</version>
+      <version>1.10.0</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>

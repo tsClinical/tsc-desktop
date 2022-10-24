@@ -8,11 +8,8 @@
 
 package com.fujitsu.tsc.desktop.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -20,14 +17,13 @@ public class Config {
 
 	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
 
-	public static String SOFTWARE_NAME = "tsClinical Metadata Desktop Tools";
-	public static String SOFTWARE_VERSION = "1.0.3 (Open Source Edition)";
-	public static String[] DEFINE_VERSIONS = new String[] { "2.0.0" };
+	public static String SOFTWARE_NAME = "tsClinical Metadata";
+	public static String SOFTWARE_VERSION = "1.1.0 (Open Source Edition)";
+	public static String[] DEFINE_VERSIONS = new String[] { "2.0.0", "2.1.n" };
 	public static String[] ODM_VERSIONS = new String[] { "1.3.2" };
 	public static String[] EDT_TYPE = new String[] {
 			"Screening (Denormalized)",
-			"Treatment Assignment",
-			"Treatment Assignment2",
+			"KeyCode Table",
 			"Exposure (Normalized)",
 			"Exposure (Denormalized)",
 			"Deviation (Normalized)",
@@ -44,18 +40,22 @@ public class Config {
 			"Other"
 	};
 	public static String[] ENCODING = new String[] { "UTF-8", "ISO-8859-1", "Shift_JIS" };
+	public static String DEFAULT_ENCODING = "UTF-8";
 	public static String[] DELIMITED_FIXED = new String[] { "Delimited" };
 	public static String[] TEXT_QUALIFIER = new String[] { "\"", "'", "(None)" };
 
 	/* Parameters in general and of Generate Define.xml */
-	public String e2dDefineVersion = "2.0.0";
+	public String e2dDefineVersion = "";
 	public DatasetType e2dDatasetType = DatasetType.SDTM;
 	public boolean e2dIncludeResultMetadata = false;
 	public String e2dXmlEncoding = "UTF-8";
-	public String e2dStylesheetLocation = "define2-0-0.xsl";
+	public String e2dStylesheetLocation = "";
 	public String e2dDataSourceLocation = "";
 	public String e2dOutputLocation = "";
 	public String defineStudyTableName = "STUDY";
+	public String defineMethodTableName = "METHOD";
+	public String defineCommentTableName = "COMMENT";
+	public String defineStandardTableName = "STANDARD";
 	public String defineDocumentTableName = "DOCUMENT";
 	public String defineDatasetTableName = "DATASET";
 	public String defineVariableTableName = "VARIABLE";
@@ -75,10 +75,17 @@ public class Config {
 	/* Parameters of Import Define.xml */
 	public String d2eDefineVersion = "2.0.0";
 	public String d2eDatasetType = "SDTM";
+	public boolean d2eSeparateSheet = false;
+	public boolean d2eMergeNSVtoParent = true;
 	public String schema1SourceLocation = "./schema/hard/cdisc-define-2.0/define2-0-0.xsd";
 	public String schema2SourceLocation = "./schema/soft/cdisc-define-2.0/define2-0-0.xsd";
 	public String d2eDataSourceLocation;
 	public String d2eOutputLocation;
+	
+	/* Parameters of Convert from Define-XML to HTML */
+	public String x2hXmlLocation;
+	public String x2hXslLocation;
+	public String x2hOutputLocation;
 
 	/* Parameters of Export ODM-XML */
 	public String e2oOdmVersion = "1.3.2";
@@ -146,7 +153,7 @@ public class Config {
 	public enum OidMode {
 		NATIVE, EXACT
 	}
-
+	
 	public Config() {
 	}
 
@@ -179,6 +186,12 @@ public class Config {
 			e2dIncludeResultMetadata = true;
 		if (!prop.getProperty("defineStudyTableName", "").equals(""))
 			defineStudyTableName = prop.getProperty("defineStudyTableName");
+		if (!prop.getProperty("defineMethodTableName", "").equals(""))
+			defineMethodTableName = prop.getProperty("defineMethodTableName");
+		if (!prop.getProperty("defineCommentTableName", "").equals(""))
+			defineCommentTableName = prop.getProperty("defineCommentTableName");
+		if (!prop.getProperty("defineStandardTableName", "").equals(""))
+			defineStandardTableName = prop.getProperty("defineStandardTableName");
 		if (!prop.getProperty("defineDocumentTableName", "").equals(""))
 			defineDocumentTableName = prop.getProperty("defineDocumentTableName");
 		if (!prop.getProperty("defineDatasetTableName", "").equals(""))
@@ -203,10 +216,28 @@ public class Config {
 			d2eDefineVersion = prop.getProperty("d2eDefineVersion");
 		if (!prop.getProperty("d2eDatasetType", "").equals(""))
 			d2eDatasetType = prop.getProperty("d2eDatasetType");
+		if (prop.getProperty("d2eSeparateSheet", "").toUpperCase().equals("TRUE")) {
+			d2eSeparateSheet = true;
+		} else {
+			d2eSeparateSheet = false;
+		}
+		if (prop.getProperty("d2eMergeNSVtoParent", "").toUpperCase().equals("TRUE")) {
+			d2eMergeNSVtoParent = true;
+		} else {
+			d2eMergeNSVtoParent = false;
+		}
 		if (!prop.getProperty("d2eDataSourceLocation", "").equals(""))
 			d2eDataSourceLocation = prop.getProperty("d2eDataSourceLocation");
 		if (!prop.getProperty("d2eOutputLocation", "").equals(""))
 			d2eOutputLocation = prop.getProperty("d2eOutputLocation");
+
+		//Convert from XML to HTML
+		if (!prop.getProperty("x2hXmlLocation", "").equals(""))
+			x2hXmlLocation = prop.getProperty("x2hXmlLocation");
+		if (!prop.getProperty("x2hXslLocation", "").equals(""))
+			x2hXslLocation = prop.getProperty("x2hXslLocation");
+		if (!prop.getProperty("x2hOutputLocation", "").equals(""))
+			x2hOutputLocation = prop.getProperty("x2hOutputLocation");
 
 		// Export ODM-XML
 		if (!prop.getProperty("e2oOdmVersion", "").equals(""))

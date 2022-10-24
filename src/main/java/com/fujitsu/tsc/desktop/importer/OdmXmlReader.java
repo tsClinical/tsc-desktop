@@ -90,9 +90,9 @@ public class OdmXmlReader extends DefaultHandler {
  
 	/**
 	 * Constructor
-	 * @param odm An OdmModel object to which the ODM xml file is bound. Cannot be null.
+	 * @param config An OdmModel object to which the ODM xml file is bound. Cannot be null.
 	 * @param study_oid When multiple studies are included in the ODM xml file, only metadata of this study will be read. Cannot be null.
-	 * @param metadata_version When multiple metadata versions are included in the ODM xml file, only metadata of this version will be read. Cannot be null.
+	 * @param metadata_version_oid When multiple metadata versions are included in the ODM xml file, only metadata of this version will be read. Cannot be null.
 	 */
 	public OdmXmlReader(Config config, String study_oid, String metadata_version_oid){
 		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
@@ -123,7 +123,10 @@ public class OdmXmlReader extends DefaultHandler {
 			study.file_type = attr.getValue("FileType");
 			study.as_of_date_time = attr.getValue("AsOfDateTime");
 			study.originator = attr.getValue("Originator");
-			study.source_system = attr.getValue("SourceSystem");
+			study.source_system = attr.getValue("ddedcp:SourceDataFrom");
+			if (StringUtils.isEmpty(study.source_system)) {
+				study.source_system = attr.getValue("SourceSystem");
+			}
 			odm.put(study);
 		} else if ("/ODM/Study/".equals(path)) {
 			this.cached_study_oid = attr.getValue("OID");
@@ -316,7 +319,7 @@ public class OdmXmlReader extends DefaultHandler {
 				}
 				itemgroup.level = 1;
 				itemgroup.mandatory = attr.getValue("Mandatory");
-				itemgroup.collection_exception_cnd = attr.getValue("CollectionExceptionConditionOID");
+				itemgroup.condition_id = attr.getValue("CollectionExceptionConditionOID");
 				odm.put(key, itemgroup);
 			}
 		} else if ("/ODM/Study/MetaDataVersion/ItemGroupDef/".equals(path)) {
@@ -363,8 +366,8 @@ public class OdmXmlReader extends DefaultHandler {
 						item.level = 0;
 						item.mandatory = attr.getValue("Mandatory");
 						item.key_sequence = attr.getValue("KeySequence");
-						item.derivation = attr.getValue("MethodOID");
-						item.collection_exception_cnd = attr.getValue("CollectionExceptionConditionOID");
+						item.method_id = attr.getValue("MethodOID");
+						item.condition_id = attr.getValue("CollectionExceptionConditionOID");
 						odm.put(key, item);
 					}
 				} else {
@@ -391,6 +394,8 @@ public class OdmXmlReader extends DefaultHandler {
 				if (items != null) {
 					for (OdmFieldModel item : items) {
 						item.name = attr.getValue("Name");
+						item.control_type = attr.getValue("ddedcp:InputFormatTyp");
+						item.section_label = attr.getValue("ddedcp:SectionLabel");
 						item.data_type = attr.getValue("DataType");
 						try {
 							if (!StringUtils.isEmpty(attr.getValue("Length")))

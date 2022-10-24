@@ -96,7 +96,7 @@ public class CrfSpecCreator {
 
 	/**
 	 * Scan datasets
-	 * @return
+	 * @return A new OdmModel object
 	 * @throws IOException
 	 * @throws CsvException 
 	 */
@@ -130,7 +130,7 @@ public class CrfSpecCreator {
 					case DATE:
 						field.data_type = "datetime";
 						updateEdcDateFormat(columnType.detail);
-						updateEdcUnkDateTimeText(StringUtils.defaultString(seaechUnkDateTime(j, columnType.getDetail())));
+						updateEdcUnkDateTimeText(StringUtils.defaultString(searchUnkDateTime(j, columnType.getDetail())));
 						break;
 					case STRING:
 						field.data_type = "text";
@@ -258,7 +258,7 @@ public class CrfSpecCreator {
 	}
 
 	//Find UNK expressions
-	private String seaechUnkDateTime(int columnIdx, String format) {
+	private String searchUnkDateTime(int columnIdx, String format) {
 		List<String> MON = Arrays.asList(new String[] { "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC" });
 		RegexDateMatcher matcher = null;
 		for (RegexDateMatcher dateMatcher : CrfSpecCreator.dateMatchers) {
@@ -357,12 +357,19 @@ public class CrfSpecCreator {
 			return pattern.matcher(str).find();
 		}
 
+		/*
+		 * Return parts of date string (i.e. {"yyyy", "MM", "dd"}) that matches the pattern.
+		 * If the string is different from the pattern, then return empty array.
+		 * TODO: This code simply returns empty array if date parts are text.
+		 */
 		List<String> getMatchStrings(String str) {
 			Matcher matcher = pattern.matcher(str);
 			List<String> rtn = new ArrayList<>();
-			matcher.find();
-			for (int i = 0; i < matcher.groupCount(); i++) {
-				rtn.add(matcher.group(i + 1));
+			boolean res = matcher.find();
+			if (res) {
+				for (int i = 0; i < matcher.groupCount(); i++) {
+					rtn.add(matcher.group(i + 1));
+				}
 			}
 			return rtn;
 		}

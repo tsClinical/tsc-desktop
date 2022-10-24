@@ -12,7 +12,11 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.GroupLayout;
 import javax.swing.JButton;
@@ -27,13 +31,22 @@ import javax.swing.LayoutStyle;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.fujitsu.tsc.desktop.util.Config;
+import com.fujitsu.tsc.desktop.util.ErrorLog;
 import com.fujitsu.tsc.desktop.util.InvalidParameterException;
+import com.fujitsu.tsc.desktop.util.ErrorLog.ErrorLevel;
 import com.fujitsu.tsc.desktop.exporter.XmlGenerator;
+import com.fujitsu.tsc.desktop.exporter.model.XmlDocument;
+import com.fujitsu.tsc.desktop.importer.SdtmAdamSpecImporter;
+import com.fujitsu.tsc.desktop.importer.models.DefineModel;
+import com.fujitsu.tsc.desktop.exporter.DefineXmlWriter2;
 import com.fujitsu.tsc.desktop.exporter.InvalidOidSyntaxException;
 import com.fujitsu.tsc.desktop.exporter.RequiredValueMissingException;
 import com.fujitsu.tsc.desktop.exporter.TableNotFoundException;
@@ -373,24 +386,57 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 				        epAppender.setEditorPane(parent.defineExportResultPanel.gResultEditorPane);
 				        epAppender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
 				        logger.addAppender(epAppender);
+						/* Configure Define-XML Generator */
+						config.e2dDefineVersion = defineVersionCB.getSelectedItem().toString();
+						config.e2dDatasetType = Config.DatasetType.valueOf(datasetTypeCB.getSelectedItem().toString());
+						config.e2dIncludeResultMetadata = includeResultMetadataCB.isSelected();
+						config.e2dXmlEncoding = xmlEncodingCB.getSelectedItem().toString();
+						config.e2dStylesheetLocation = stylesheetLocationTF.getText();
+						config.e2dDataSourceLocation = dataSourceLocationTF.getText();
+						config.e2dOutputLocation = outputLocationTF.getText();
+						Workbook workbook = null;
+						logger.info("Opening the source Excel file...");
 						try {
-							/* Configure Define-XML Generator */
-							config.e2dDefineVersion = defineVersionCB.getSelectedItem().toString();
-							config.e2dDatasetType = Config.DatasetType.valueOf(datasetTypeCB.getSelectedItem().toString());
-							config.e2dIncludeResultMetadata = includeResultMetadataCB.isSelected();
-							config.e2dXmlEncoding = xmlEncodingCB.getSelectedItem().toString();
-							config.e2dStylesheetLocation = stylesheetLocationTF.getText();
-							config.e2dDataSourceLocation = dataSourceLocationTF.getText();
-							config.e2dOutputLocation = outputLocationTF.getText();
-							
-							XmlGenerator generator = new XmlGenerator(config, Config.RunMode.GUI);
-							generator.generateDefineXml();
+							File sourceFile = new File(config.e2dDataSourceLocation);
+							workbook = new XSSFWorkbook(sourceFile);
+							logger.info("Loading...");
+							SdtmAdamSpecImporter importer = new SdtmAdamSpecImporter(config, workbook);
+							List<ErrorLog> error_logs = importer.parse();
+							if (error_logs.isEmpty()) {
+								logger.info("Loading completed.");
+							} else {
+								List<ErrorLog> error_log_errors = error_logs.stream().filter(o -> o.getErrorLevel()==ErrorLevel.ERROR).collect(Collectors.toList());
+								if (error_log_errors.isEmpty()) {
+									logger.warn("The following warning(s) found during loading:");
+									for (ErrorLog error_log : error_logs) {
+										logger.warn(error_log.print());
+									}
+									logger.info("Continue processing...");
+								} else {
+									logger.error("The following error(s) found during loading:");
+									for (ErrorLog error_log_error : error_log_errors) {
+										logger.error(error_log_error.print());
+									}
+									logger.error("Processing suspended.");
+									return;
+								}
+							}
+							if ("2.0.0".equals(config.e2dDefineVersion)) {
+								logger.info("Writing Define-XML 2.0 to the target file...");
+							} else {
+								logger.info("Writing Define-XML 2.1 to the target file...");
+							}
+							DefineXmlWriter2 writer;
+							writer = new DefineXmlWriter2(config);
+							DefineModel define = importer.getDefineModel();
+							XmlDocument xml_document = writer.bind(define);
+							writer.writeout(xml_document);
+							logger.info("Define-XML has been successfully created.");
 							parent.defineExportResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
-						} catch (InvalidParameterException | TableNotFoundException | IOException
-							| InvalidOidSyntaxException | RequiredValueMissingException | InvalidFormatException ex) {
-							logger.error(ex.getMessage());
-						} finally {
+							logger.removeAppender(epAppender);
+						} catch (Exception ex) {
+							logger.error(ExceptionUtils.getStackTrace(ex));
 							logger.removeAppender(epAppender);
 						}
 				    }

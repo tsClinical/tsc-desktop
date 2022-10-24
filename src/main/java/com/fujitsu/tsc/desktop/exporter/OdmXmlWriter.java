@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
@@ -43,6 +44,7 @@ public class OdmXmlWriter {
 	private String xmlEncoding;
 	private String stylesheetLocation;
 	private Config.OidMode oidMode;
+	private String sourceSystem = "";
 	private int indent;		// Controls text indents in the output odm.xml.
 	private final String DELIMITER;
 	private final String DEFAULTLANG = "en";
@@ -130,11 +132,13 @@ public class OdmXmlWriter {
 			while ((hashNormalized = reader.read()) != null) {
 				hash.put(hashNormalized.get("Property Name"), hashNormalized.get("Property Value"));
 			}
+			this.sourceSystem = hash.get("Source System");
 
 			Calendar cal = Calendar.getInstance();
 			String str = insertIndent(indent);
 			str += "<ODM xmlns=\"http://www.cdisc.org/ns/odm/v1.3\""
 					+ " xmlns:xlink=\"http://www.w3.org/1999/xlink\""
+					+ (StringUtils.isNotEmpty(this.sourceSystem) ? " xmlns:ddedcp=\"http://www.fujitsu.com/ddedcp/odm\"" : "")
 					+ " ODMVersion=\"" + (hash.get("ODMVersion").equals("") ? config.e2oOdmVersion : hash.get("ODMVersion"))
 					+ "\" FileOID=\"" + (hash.get("FileOID").equals("") ? UUID.randomUUID().toString() : hash.get("FileOID"))
 					+ "\" FileType=\"" + (hash.get("FileType").equals("") ? config.defineFileType : hash.get("FileType"))
@@ -149,6 +153,7 @@ public class OdmXmlWriter {
 					+ (hash.get("Originator").equals("") ? "" : "\" Originator=\"" + hash.get("Originator"))
 					+ "\" SourceSystem=\"" + Config.SOFTWARE_NAME
 					+ "\" SourceSystemVersion=\"" + Config.SOFTWARE_VERSION
+					+ (StringUtils.isNotEmpty(this.sourceSystem) ? "\" ddedcp:SourceDataFrom=\"" + this.sourceSystem : "")
 					+ "\">";
 			writer.write(str);
 			writer.newLine();
@@ -268,8 +273,10 @@ public class OdmXmlWriter {
 				}
 				
 				str = insertIndent(indent);
-				str += "<TranslatedText xml:lang=\"" + hash.get("xml:lang")
-						+ "\">" + XmlGenerator.escapeString(hash.get("Symbol"))
+				str += "<TranslatedText"
+						+ (StringUtils.isEmpty(hash.get("xml:lang")) ? "" : " xml:lang=\"" + hash.get("xml:lang") + "\"")
+						+ ">"
+						+ XmlGenerator.escapeString(hash.get("Symbol"))
 						+ "</TranslatedText>";
 				writer.write(str);
 				writer.newLine();
@@ -341,7 +348,9 @@ public class OdmXmlWriter {
 				indent++;
 				
 				str = insertIndent(indent);
-				str += "<TranslatedText xml:lang=\"" + protocolDescriptionLang + "\">"
+				str += "<TranslatedText"
+						+ (StringUtils.isEmpty(protocolDescriptionLang) ? "" : " xml:lang=\"" + protocolDescriptionLang + "\"")
+						+ ">"
 						+ XmlGenerator.escapeString(protocolDescription) + "</TranslatedText>";
 				writer.write(str);
 				writer.newLine();
@@ -399,6 +408,7 @@ public class OdmXmlWriter {
 			Hashtable<String, String> hash2 = new Hashtable<String, String>();
 			Hashtable<String, String> formNameIdHash = new Hashtable<String, String>(); //Pairs of Form ID and Name
 			String str = new String();
+			int order = 1;
 			
 			//Get pairs of Form ID and Name for later use.
 			reader.setTable(config.odmFormTableName);
@@ -429,7 +439,9 @@ public class OdmXmlWriter {
 					indent++;
 					
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\"" + hash.get("xml:lang") + "\">"
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("xml:lang")) ? "" : " xml:lang=\"" + hash.get("xml:lang") + "\"")
+							+ ">"
 							+ XmlGenerator.escapeString(hash.get("Description")) + "</TranslatedText>";
 					writer.write(str);
 					writer.newLine();
@@ -444,13 +456,12 @@ public class OdmXmlWriter {
 				reader.setTable(config.odmEventFormTableName,
 						new WhereClause[] { new WhereClause("Event Name", WhereClause.Operator.EQ, hash.get("Name")) });
 				
-				int i = 1;
 				while ((hash2 = reader.read(config.odmEventFormTableName)) != null) {
 					errHint.setErrorHint(OdmTagType.FORMREF, hash2.get("Event Name"), hash2.get("Form Name"), "", "",  "");
 
 					str = insertIndent(indent);
 					str += "<FormRef FormOID=\"" + createOID(OdmTagType.FORMREF, "", formNameIdHash.get(hash2.get("Form Name")), "", "", "")
-							+ "\" OrderNumber=\"" + i++
+							+ "\" OrderNumber=\"" + order++
 							+ "\" Mandatory=\"" + hash2.get("Mandatory")
 							+ (hash2.get("CollectionExceptionCondition").equals("") ? "" : "\" CollectionExceptionConditionOID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", hash2.get("CollectionExceptionCondition")))
 							+ "\"/>";
@@ -499,12 +510,16 @@ public class OdmXmlWriter {
 			reader.setTable(config.odmFormTableName);
 			while ((hash = reader.read(config.odmFormTableName)) != null) {
 				errHint.setErrorHint(OdmTagType.FORMDEF, "", hash.get("Name"), "", "", "");
-				formNameRepeatingHash.put(hash.get("Name"), hash.get("Repeating"));	//Used to retain Repeating value of forms; eventually used to generate default itemgroup.
+				String isRepeating = hash.get("Repeating");
+				if (StringUtils.isEmpty(isRepeating)) {
+					isRepeating = "No";
+				}
+				formNameRepeatingHash.put(hash.get("Name"), isRepeating);	//Used to retain Repeating value of forms; eventually used to generate default itemgroup.
 
 				str = insertIndent(indent);
 				str += "<FormDef OID=\"" + createOID(OdmTagType.FORMDEF, "", hash.get("ID"), "", "", "")
 						+ "\" Name=\"" + XmlGenerator.escapeString(hash.get("Name"))
-						+ "\" Repeating=\"" + hash.get("Repeating")
+						+ "\" Repeating=\"" + isRepeating
 						+ "\">";
 				writer.write(str);
 				writer.newLine();
@@ -518,7 +533,9 @@ public class OdmXmlWriter {
 					indent++;
 					
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\"" + hash.get("xml:lang") + "\">"
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("xml:lang")) ? "" : " xml:lang=\"" + hash.get("xml:lang") + "\"")
+							+ ">"
 							+ XmlGenerator.escapeString(hash.get("Description")) + "</TranslatedText>";
 					writer.write(str);
 					writer.newLine();
@@ -538,23 +555,31 @@ public class OdmXmlWriter {
 					errHint.setErrorHint(OdmTagType.ITEMGROUPREF, "", hash2.get("Form Name"), hash2.get("Item Name"), "",  "");
 
 					if (hash2.get("Level").equals("1")) {
+						String conditionId = hash2.get("Condition ID");
+						if (StringUtils.isEmpty(conditionId)) {
+							conditionId = hash2.get("CollectionExceptionCondition");
+						}
 						itemGroupNumber++;
 						str = insertIndent(indent);
 						str += "<ItemGroupRef ItemGroupOID=\"" + createOID(OdmTagType.ITEMGROUPREF, "", "", hash2.get("ID"), "", "")
 								+ "\" OrderNumber=\"" + i++
 								+ "\" Mandatory=\"" + hash2.get("Mandatory")
-								+ (hash2.get("CollectionExceptionCondition").equals("") ? "" : "\" CollectionExceptionConditionOID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", hash2.get("CollectionExceptionCondition")))
+								+ (StringUtils.isEmpty(conditionId) ? "" : "\" CollectionExceptionConditionOID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", conditionId))
 								+ "\"/>";
 						writer.write(str);
 						writer.newLine();
 					} else {
 						if (itemGroupNumber == 0) {
+							String mandatory = formNameMandatoryHash.get(hash2.get("Form Name"));
+							if (StringUtils.isEmpty(mandatory)) {
+								mandatory = "No";
+							}
 							//Begin default ItemGroupDef
 							itemGroupNumber++;
 							str = insertIndent(indent);
 							str += "<ItemGroupRef ItemGroupOID=\"" + createOID(OdmTagType.ITEMGROUPDEF, "", "", createOID(OdmTagType.FORMDEF, "", hash.get("ID"), "", "", ""), "", "")
 									+ "\" OrderNumber=\"" + i++
-									+ "\" Mandatory=\"" + formNameMandatoryHash.get(hash2.get("Form Name"))	//Assign Mandatory value of form
+									+ "\" Mandatory=\"" + mandatory	//Assign Mandatory value of event-form
 									+ "\"/>";
 							writer.write(str);
 							writer.newLine();
@@ -700,7 +725,9 @@ public class OdmXmlWriter {
 						indent++;
 						
 						str = insertIndent(indent);
-						str += "<TranslatedText xml:lang=\"" + hash.get("Description xml:lang") + "\">"
+						str += "<TranslatedText"
+								+ (StringUtils.isEmpty(hash.get("Description xml:lang")) ? "" : " xml:lang=\"" + hash.get("Description xml:lang") + "\"")
+								+ ">"
 								+ XmlGenerator.escapeString(hash.get("Description")) + "</TranslatedText>";
 						writer.write(str);
 						writer.newLine();
@@ -756,7 +783,9 @@ public class OdmXmlWriter {
 							strAliasName = hash.get("Alias Name").split(DELIMITER);	//Retain alias value to close ItemGroupDef later
 							str = insertIndent(indent);
 							str += "<ItemGroupDef OID=\"" + createOID(OdmTagType.ITEMGROUPDEF, "", "", createOID(OdmTagType.FORMDEF, "", formNameIdHash.get(hash.get("Form Name")), "", "", ""), "", "")
-									+ "\" Name=\"DEFAULT_" + itemGroupNumber + "\" Repeating=\"No\">";
+									+ "\" Name=\"DEFAULT_" + itemGroupNumber
+									+ "\" Repeating=\"" + formNameRepeatingHash.get(hash.get("Form Name"))
+									+ "\">";
 							writer.write(str);
 							writer.newLine();
 							indent++;
@@ -764,15 +793,23 @@ public class OdmXmlWriter {
 					}
 
 					//Create ItemRef
+					String methodId = hash.get("Method ID");
+					if (StringUtils.isEmpty(methodId)) {
+						methodId = hash.get("Derivation");
+					}
+					String conditionId = hash.get("Condition ID");
+					if (StringUtils.isEmpty(conditionId)) {
+						conditionId = hash.get("CollectionExceptionCondition");
+					}
 					str = insertIndent(indent);
 					str += "<ItemRef ItemOID=\"" + createOID(OdmTagType.ITEMREF, "", "", "", hash.get("ID"), "")
 							+ "\" OrderNumber=\"" + orderNumber++
 							+ "\" Mandatory=\"" + hash.get("Mandatory")
 							+ (hash.get("Key Sequence").equals("") ? "" : "\" KeySequence=\"" + hash.get("Key Sequence"))
-							+ (hash.get("Derivation").equals("") ? ""
-									: "\" MethodOID=\"" + createOID(OdmTagType.METHODDEF, "", "", "", "", hash.get("Derivation")))
-							+ (hash.get("CollectionExceptionCondition").equals("") ? ""
-									: "\" CollectionExceptionConditionOID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", hash.get("CollectionExceptionCondition")))
+							+ (StringUtils.isEmpty(methodId) ? ""
+									: "\" MethodOID=\"" + createOID(OdmTagType.METHODDEF, "", "", "", "", methodId))
+							+ (StringUtils.isEmpty(conditionId) ? ""
+									: "\" CollectionExceptionConditionOID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", conditionId))
 							+ "\"/>";
 					writer.write(str);
 					writer.newLine();
@@ -840,6 +877,9 @@ public class OdmXmlWriter {
 						+ (hash.get("Length").equals("") ? "" : "\" Length=\"" + hash.get("Length"))
 						+ (hash.get("SignificantDigits").equals("") ? "" : "\" SignificantDigits=\"" + hash.get("SignificantDigits"))
 						+ (hash.get("SAS Name").equals("") ? "" : "\" SASFieldName=\"" + hash.get("SAS Name"))
+						+ (StringUtils.isEmpty(hash.get("ControlType")) ? "" : "\" ddedcp:InputFormatTyp=\"" + hash.get("ControlType"))
+						+ (StringUtils.isEmpty(hash.get("Section Label")) ? "" : "\" ddedcp:SectionLabelStyle=\"2")
+						+ (StringUtils.isEmpty(hash.get("Section Label")) ? "" : "\" ddedcp:SectionLabel=\"" + XmlGenerator.escapeString(hash.get("Section Label")))
 						+ "\">";
 				writer.write(str);
 				writer.newLine();
@@ -853,7 +893,9 @@ public class OdmXmlWriter {
 					indent++;
 					
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\"" + hash.get("Description xml:lang") + "\">"
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("Description xml:lang")) ? "" : " xml:lang=\"" + hash.get("Description xml:lang") + "\"")
+							+ ">"
 							+ XmlGenerator.escapeString(hash.get("Description")) + "</TranslatedText>";
 					writer.write(str);
 					writer.newLine();
@@ -873,7 +915,9 @@ public class OdmXmlWriter {
 					indent++;
 					
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\"" + hash.get("Question xml:lang") + "\">"
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("Question xml:lang")) ? "" : " xml:lang=\"" + hash.get("Question xml:lang") + "\"")
+							+ ">"
 							+ XmlGenerator.escapeString(hash.get("Question")) + "</TranslatedText>";
 					writer.write(str);
 					writer.newLine();
@@ -958,8 +1002,9 @@ public class OdmXmlWriter {
 						indent++;
 						
 						str = insertIndent(indent);
-						str += "<TranslatedText xml:lang=\""
-								+ (hash.get("Question xml:lang").equals("") ? "en" : hash.get("Question xml:lang")) + "\">"
+						str += "<TranslatedText"
+								+ (StringUtils.isEmpty(hash.get("Question xml:lang")) ? "" : " xml:lang=\"" + hash.get("Question xml:lang") + "\"")
+								+ ">"
 								+ XmlGenerator.escapeString(hash.get("RangeCheck Error Message")) + "</TranslatedText>";
 						writer.write(str);
 						writer.newLine();
@@ -1132,9 +1177,10 @@ public class OdmXmlWriter {
 					indent++;
 
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\""
-							+ (hash.get("xml:lang") != null && !hash.get("xml:lang").equals("") ? hash.get("xml:lang") : DEFAULTLANG)
-							+ "\">" + (hash.get("Translated Text") == null || hash.get("Translated Text").equals("") ?
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("xml:lang")) ? "" : " xml:lang=\"" + hash.get("xml:lang") + "\"")
+							+ ">"
+							+ (hash.get("Translated Text") == null || hash.get("Translated Text").equals("") ?
 									XmlGenerator.escapeString(hash.get("Decode")) : XmlGenerator.escapeString(hash.get("Translated Text"))) 
 							+ "</TranslatedText>";
 					writer.write(str);
@@ -1218,7 +1264,15 @@ public class OdmXmlWriter {
 
 			while ((hash = reader.read(config.odmConditionTableName)) != null) {
 				errHint.setErrorHint(OdmTagType.CONDITIONDEF, "", "", "", "", "");
-				if (prevConditionName == null || !prevConditionName.equals(hash.get("Name"))) {
+				String conditionId = hash.get("ID");
+				if (StringUtils.isEmpty(conditionId)) {
+					conditionId = hash.get("Condition ID");
+				}
+				String conditionName = hash.get("Name");
+				if (StringUtils.isEmpty(conditionName)) {
+					conditionName = hash.get("Condition Name");
+				}
+				if (prevConditionName == null || !prevConditionName.equals(conditionName)) {
 					conditionNumber++;
 					if (prevConditionName != null) {
 						if (strAliasName[0] != null && !strAliasName[0].equals("")) {
@@ -1241,8 +1295,8 @@ public class OdmXmlWriter {
 						writer.newLine();
 					}
 					str = insertIndent(indent);
-					str += "<ConditionDef OID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", hash.get("ID"))
-							+ "\" Name=\"" + hash.get("Name")
+					str += "<ConditionDef OID=\"" + createOID(OdmTagType.CONDITIONDEF, "", "", "", "", conditionId)
+							+ "\" Name=\"" + conditionName
 							+ "\">";
 					writer.write(str);
 					writer.newLine();
@@ -1255,7 +1309,9 @@ public class OdmXmlWriter {
 					indent++;
 						
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\"" + hash.get("xml:lang") + "\">"
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("xml:lang")) ? "" : " xml:lang=\"" + hash.get("xml:lang") + "\"")
+							+ ">"
 							+ XmlGenerator.escapeString(hash.get("Description")) + "</TranslatedText>";
 					writer.write(str);
 					writer.newLine();
@@ -1276,7 +1332,7 @@ public class OdmXmlWriter {
 				writer.write(str);
 				writer.newLine();
 				
-				prevConditionName = hash.get("Name");
+				prevConditionName = conditionName;
 			}
 
 			if (conditionNumber > 0) {
@@ -1322,7 +1378,19 @@ public class OdmXmlWriter {
 
 			while ((hash = reader.read(config.odmMethodTableName)) != null) {
 				errHint.setErrorHint(OdmTagType.METHODDEF, "", "", "", "", "");
-				if (prevMethodName == null || !prevMethodName.equals(hash.get("Name"))) {
+				String methodId = hash.get("ID");
+				if (StringUtils.isEmpty(methodId)) {
+					methodId = hash.get("Method ID");
+				}
+				String methodName = hash.get("Name");
+				if (StringUtils.isEmpty(methodName)) {
+					methodName = hash.get("Method Name");
+				}
+				String methodType = hash.get("Type");
+				if (StringUtils.isEmpty(methodType)) {
+					methodType = hash.get("Method Type");
+				}
+				if (prevMethodName == null || !prevMethodName.equals(methodName)) {
 					methodNumber++;
 					if (prevMethodName != null) {
 						if (strAliasName[0] != null && !strAliasName[0].equals("")) {
@@ -1345,9 +1413,9 @@ public class OdmXmlWriter {
 						writer.newLine();
 					}
 					str = insertIndent(indent);
-					str += "<MethodDef OID=\"" + createOID(OdmTagType.METHODDEF, "", "", "", "", hash.get("ID"))
-							+ "\" Name=\"" + hash.get("Name")
-							+ "\" Type=\"" + hash.get("Type")
+					str += "<MethodDef OID=\"" + createOID(OdmTagType.METHODDEF, "", "", "", "", methodId)
+							+ "\" Name=\"" + methodName
+							+ "\" Type=\"" + methodType
 							+ "\">";
 					writer.write(str);
 					writer.newLine();
@@ -1360,7 +1428,9 @@ public class OdmXmlWriter {
 					indent++;
 						
 					str = insertIndent(indent);
-					str += "<TranslatedText xml:lang=\"" + hash.get("xml:lang") + "\">"
+					str += "<TranslatedText"
+							+ (StringUtils.isEmpty(hash.get("xml:lang")) ? "" : " xml:lang=\"" + hash.get("xml:lang") + "\"")
+							+ ">"
 							+ XmlGenerator.escapeString(hash.get("Description")) + "</TranslatedText>";
 					writer.write(str);
 					writer.newLine();
@@ -1381,7 +1451,7 @@ public class OdmXmlWriter {
 				writer.write(str);
 				writer.newLine();
 				
-				prevMethodName = hash.get("Name");
+				prevMethodName = methodName;
 			}
 
 			if (methodNumber > 0) {

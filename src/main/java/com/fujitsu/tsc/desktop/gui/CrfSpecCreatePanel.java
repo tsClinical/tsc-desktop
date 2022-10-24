@@ -33,6 +33,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
@@ -41,15 +42,16 @@ import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import com.fujitsu.tsc.desktop.util.Config;
 import com.fujitsu.tsc.desktop.util.ErrorInfo;
 import com.opencsv.exceptions.CsvException;
-//import com.fujitsu.tsc.desktop.importer.ArchitectImporter;
 import com.fujitsu.tsc.desktop.importer.CrfSpecCreator;
 import com.fujitsu.tsc.desktop.importer.ExcelWriter2;
 import com.fujitsu.tsc.desktop.importer.models.EdcKeysModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmCodelistModel;
+import com.fujitsu.tsc.desktop.importer.models.OdmConditionModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmEventFormModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmEventModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmFieldModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmFormModel;
+import com.fujitsu.tsc.desktop.importer.models.OdmMethodModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmStudyModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmUnitModel;
@@ -452,28 +454,6 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 								crf = creator.create();
 								logger.info("Created CRF Spec from Datasets successfully.");
 							}
-//							if (StringUtils.isNotEmpty(architectLocationTF.getText())) {
-//								logger.info("Importing Architect CRF ...");
-//								config.crfArchitectLocation = architectLocationTF.getText();
-//								ArchitectImporter architectImporter = null;
-//								if (crf != null) {
-//									architectImporter = new ArchitectImporter(config, crf);
-//								} else {
-//									architectImporter = new ArchitectImporter(config);
-//								}
-//								List<ErrorInfo> errors = architectImporter.parse();
-//								if (!errors.isEmpty()) {
-//									for (ErrorInfo error : errors) {
-//										logger.error(error);
-//									}
-//									throw new IllegalArchitectFormat();
-//								} else {
-//									logger.info("Architect CRF has been loaded successfully.");
-//								}
-//								logger.info("Converting Architect to CRF Spec...");
-//								crf = architectImporter.bindArchitectToOdm();
-//								logger.info("Converted Architect to CRF successfully.");
-//							}
 							if (crf == null) {
 								throw new IllegalGuiParameterException();
 							}
@@ -482,7 +462,6 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 							crf.updateEdcKeys(config.valueDelimiter);
 							crf.updateFieldFormName();
 							crf.updateFieldId(config.valueDelimiter);
-							crf.updateFieldDerivedFrom();
 							
 							logger.info("Writing to Excel...");
 							ExcelWriter2 excelWriter = new ExcelWriter2();
@@ -500,16 +479,16 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 							excelWriter.addData("FIELD", crf.listField(), OdmFieldModel.class);
 							logger.info("Writing CODELIST Sheet. This could take a few minutes...");
 							excelWriter.addData("CODELIST", crf.listCodelist(), OdmCodelistModel.class);
+							excelWriter.addData("METHOD", crf.listMethod(), OdmMethodModel.class);
+							excelWriter.addData("CONDITION", crf.listCondition(), OdmConditionModel.class);
 							logger.info("Writing EDC_KEYS Sheet...");
 							excelWriter.addData("EDC_KEYS", crf.getEdcKeys(), EdcKeysModel.class);
 							excelWriter.writeout(outFile);
 							logger.info("Done.");
 							parent.crfSpecCreateResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
-						} catch (IOException | IllegalArgumentException | IllegalAccessException
-								| IllegalGuiParameterException | CsvException ex) {
-//								| IllegalGuiParameterException | IllegalArchitectFormat | InvalidFormatException | CsvException ex) {
-							logger.error(ex.getMessage());
+						} catch (Exception ex) {
+							logger.error(ExceptionUtils.getStackTrace(ex));
 						} finally {
 							logger.removeAppender(epAppender);
 						}

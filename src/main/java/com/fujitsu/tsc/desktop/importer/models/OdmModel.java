@@ -57,7 +57,6 @@ public class OdmModel {
 	private Map<OdmMethodPk, OdmMethodModel> map_odm_method;	//METHOD
 	private Map<OdmConditionPk, OdmConditionModel> map_odm_condition;	//CONDITION
 	private EdcKeysModel edc_keys;	//EDC_KEYS
-	private final String[] rave_suffixes = new String[] {"_RAW", "_INT", "_YYYY", "_MM", "_DD", "_STD_UN", "_STD", "_UN", "_USR", "_LNG"};	//Put "_STD_UN" before "_UN"
 	
 	public OdmModel() {
 		this.odm_study = new OdmStudyModel();
@@ -223,34 +222,11 @@ public class OdmModel {
 			}
 		}
 	}
-	
-	/**
-	 * Update Derived From and IsLog
-	 */
-	public void updateFieldDerivedFrom() {
-		Set<OdmFieldPk> keys = this.map_odm_field.keySet();
-		Iterator<OdmFieldPk> iterator = keys.iterator();
-		while (iterator.hasNext()) {
-			OdmFieldPk key = iterator.next();
-			OdmFieldModel field = this.map_odm_field.get(key);
-			for (int i = 0; i < rave_suffixes.length; i++) {
-				if (field.field_id.endsWith(rave_suffixes[i])) {
-					String parent_field_id = StringUtils.substringBeforeLast(field.field_id, rave_suffixes[i]);
-					OdmFieldPk key2 = new OdmFieldPk(key.form_id, key.item_group_oid, parent_field_id);
-					OdmFieldModel field2 = this.map_odm_field.get(key2);
-					if (field2 != null) {
-						field.derived_from = field2.field_id;
-						field.is_log = field2.is_log;
-						break;
-					}
-				}
-			}
-		}
-	}
-	
+
 	/**
 	 * Update field_id
 	 * If a field is NOT a common variable, then the field_id must be [form_id].[field_id]
+	 * @param delimiter The delimiter of common variables
 	 */
 	public void updateFieldId(String delimiter) {
 		Set<String> common_vars_set = new HashSet<>();

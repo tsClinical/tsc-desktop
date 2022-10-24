@@ -401,12 +401,8 @@ public class XmlGenerator {
 
 	/**
 	 * This method escapes a string so that the string can be properly handled within XML.
-	 * i.e.
-	 * 	& -> &amp;
-	 * 	< -> &lt;
-	 * 	> -> &gt;
-	 *  " -> &quot;
-	 *  ' -> &apos;
+	 * @param str A string value before HTML escape
+	 * @return A string value before HTML escape
 	 */
 	public static String escapeString(String str) {
 		StringBuffer buffer = new StringBuffer(1000);	//initial capacity

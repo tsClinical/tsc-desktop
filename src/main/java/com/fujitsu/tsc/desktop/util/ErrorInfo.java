@@ -9,12 +9,11 @@
 package com.fujitsu.tsc.desktop.util;
 
 public class ErrorInfo {
-
+	
 	private String id;
 	private int line;
 	private int column;
 	private String message;
-
 
 	public ErrorInfo() {
 		id = "";
@@ -54,5 +53,4 @@ public class ErrorInfo {
 	public void setMessage(String message) {
 		this.message = message;
 	}
-
 }
