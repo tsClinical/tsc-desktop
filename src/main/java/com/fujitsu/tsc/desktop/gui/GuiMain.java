@@ -15,10 +15,12 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -58,6 +60,8 @@ public class GuiMain extends JFrame implements WindowListener {
     protected DefineExportResultPanel defineExportResultPanel;
     protected DefineImportPanel defineImportPanel;
     protected DefineImportResultPanel defineImportResultPanel;
+    protected XmlToHtmlPanel xmlToHtmlPanel;
+    protected XmlToHtmlResultPanel xmlToHtmlResultPanel;
     protected OdmExportPanel odmExportPanel;
     protected OdmExportResultPanel odmExportResultPanel;
     protected OdmImportPanel odmImportPanel;
@@ -113,7 +117,7 @@ public class GuiMain extends JFrame implements WindowListener {
     	try {
 			logger.info("loading property...");
     		prop = new Properties();
-    		FileReader reader = new FileReader(Config.PROPERTIES_PATH);
+    		InputStreamReader reader = new InputStreamReader(new FileInputStream(Config.PROPERTIES_PATH), Config.DEFAULT_ENCODING);
     		prop.load(reader);
     		reader.close();
     	} catch (IllegalArgumentException ex) {
@@ -132,6 +136,8 @@ public class GuiMain extends JFrame implements WindowListener {
         defineExportResultPanel = new DefineExportResultPanel(this);
         defineImportPanel = new DefineImportPanel(this, config);
         defineImportResultPanel = new DefineImportResultPanel(this);
+        xmlToHtmlPanel = new XmlToHtmlPanel(this, config);
+        xmlToHtmlResultPanel = new XmlToHtmlResultPanel(this);
         odmExportPanel = new OdmExportPanel(this, config);
         odmExportResultPanel = new OdmExportResultPanel(this);
         odmImportPanel = new OdmImportPanel(this, config);
@@ -204,7 +210,7 @@ public class GuiMain extends JFrame implements WindowListener {
 				/* Save parameters to main.properties before closing the window */
 				logger.info("saving property...");
 				try {
-		    		FileWriter writer = new FileWriter(Config.PROPERTIES_PATH);
+		    		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(Config.PROPERTIES_PATH), Config.DEFAULT_ENCODING);
 
 		    		// Generate Define.xml
 		    		prop.setProperty("e2dDefineVersion", (String)defineExportPanel.defineVersionCB.getSelectedItem());
@@ -229,9 +235,16 @@ public class GuiMain extends JFrame implements WindowListener {
 		    		// Import Define-XML
 		    		prop.setProperty("d2eDefineVersion", (String)defineImportPanel.defineVersionCB.getSelectedItem());
 		    		prop.setProperty("d2eDatasetType", (String)defineImportPanel.datasetTypeCB.getSelectedItem());
+		    		prop.setProperty("d2eSeparateSheet", Boolean.toString(defineImportPanel.separateSheetCB.isSelected()));
+		    		prop.setProperty("d2eMergeNSVtoParent", Boolean.toString(defineImportPanel.mergeNSVtoParentCB.isSelected()));
 		    		prop.setProperty("d2eDataSourceLocation", defineImportPanel.dataSourceLocationTF.getText());
 		    		prop.setProperty("d2eOutputLocation", defineImportPanel.outputLocationTF.getText());
 
+		    		// Convert from Define-XML to HTML
+		    		prop.setProperty("x2hXmlLocation", xmlToHtmlPanel.xmlLocationTF.getText());
+		    		prop.setProperty("x2hXslLocation", xmlToHtmlPanel.xslLocationTF.getText());
+		    		prop.setProperty("x2hOutputLocation", xmlToHtmlPanel.outputLocationTF.getText());
+		    		
 		    		// Export ODM-XML
 		    		prop.setProperty("o2eOdmVersion", (String)odmExportPanel.odmVersionCB.getSelectedItem());
 		    		prop.setProperty("e2oXmlEncoding", (String)odmExportPanel.xmlEncodingCB.getSelectedItem());

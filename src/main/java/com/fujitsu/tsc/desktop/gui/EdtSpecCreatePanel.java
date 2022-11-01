@@ -26,6 +26,7 @@ import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
@@ -400,8 +401,8 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
 							logger.info("Done.");
 							parent.edtSpecCreateResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
-						} catch (IOException | IllegalArgumentException | IllegalAccessException | CsvException e1) {
-							logger.error(e1.getMessage());
+						} catch (Exception ex) {
+							logger.error(ExceptionUtils.getStackTrace(ex));
 						} finally {
 							logger.removeAppender(epAppender);
 						}

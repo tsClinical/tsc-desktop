@@ -66,6 +66,7 @@ public class XmlValidationAppender extends AppenderSkeleton {
 
 	/**
 	 * Write error messages (e.g. IOException) to the table.
+	 * @param err An error message
 	 */
 	public void writeErrorMessage(String err) {
 		TableModel model = table.getModel();

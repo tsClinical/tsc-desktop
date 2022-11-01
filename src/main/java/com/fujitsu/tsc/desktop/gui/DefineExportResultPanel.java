@@ -120,7 +120,7 @@ public class DefineExportResultPanel extends JPanel {
 	    gResultScrollPane.setPreferredSize(new Dimension(GuiConstants.EDITOR_PANE_WIDTH, GuiConstants.EDITOR_PANE_HEIGHT));
 	    
 		gResultMessage = new JLabel();
-		gResultMessage.setFont(defaultFont);
+//		gResultMessage.setFont(defaultFont);	//Commented out to avoid non-English letters are collapsed.
 		gResultMessage.setText("Define-XML Export Log:");
 		outputLocationL = new JLabel();
 		outputLocationL.setFont(defaultFont);

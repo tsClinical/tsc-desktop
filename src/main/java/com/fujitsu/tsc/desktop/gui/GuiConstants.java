@@ -132,7 +132,7 @@ public class GuiConstants {
 //	public static String SOFTWARE_NAME = "tsClinical Metadata Desktop Tools";
 //	public static String SOFTWARE_VERSION_LABEL = "V1.0.0";
 	public static String WEBSITE_URL = "https://github.com/tsClinical/tsc-desktop";
-	public static String COPYRIGHT = "Copyright 2020 Fujitsu Limited. All Rights Reserved.";
+	public static String COPYRIGHT = "Copyright 2020-2022 Fujitsu Limited. All Rights Reserved.";
 
 	/* Other constants */
 	public static String[] DEFINE_VERSIONS = new String[] { "2.0.0" };
@@ -166,6 +166,7 @@ public class GuiConstants {
 	}
 	public static String[] ENCODINGS = new String[] { "UTF-8" };
 	public static String DEFINE_FILE_NAME = "define.xml";
+	public static String DEFINE_HTML_FILE_NAME = "define.html";
 	public static String ODM_FILE_NAME = "odm.xml";
 	public static String EXCEL_FILE_NAME = "define.xlsx";
 	public static String ODM_EXCEL_FILE_NAME = "odm.xlsx";

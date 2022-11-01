@@ -22,21 +22,38 @@ import com.fujitsu.tsc.desktop.util.MetaDataReader;
 
 public class SuppUtil {
 
-	private ArrayList<String> suppDatasets;	// A list of parent datasets
-	private Hashtable<String, ArrayList<Variable>> suppVariables; // Pairs of a parent dataset and a supp variable.
-	private Hashtable seqList; //Pairs of a parent dataset name and -SEQ lengh of the dataset for IDVARVAL length;
-//Change for v1.3.0
-	private Hashtable datasetAndDomainSet;//Set of Dataset and Domain when Has SUPP.
+	private boolean is_autosupp_active = false;
+	private ArrayList<SuppDataset> supp_datasets = new ArrayList<>();	// A list of parent datasets
+	private final Set<String> supp_dataset_names;	//To be mapped from supp_datasets
+	private ArrayList<Variable> qval_values = new ArrayList<>();	// A list of QVAL values
+	private final Set<String> qval_value_keys;	//To be mapped from qval_values
+	private Hashtable seqList = new Hashtable<>(); //Pairs of a parent dataset name and -SEQ lengh of the dataset for IDVARVAL length;
 
-	SuppUtil() {
-		suppDatasets = new ArrayList<String>();
-		suppVariables = new Hashtable<String, ArrayList<Variable>>();
-		seqList = new Hashtable <String, String>();
-//Change for v1.3.0
-        datasetAndDomainSet = new Hashtable<String, String>();
+	public enum IsEmpty {	//Indicates whether a dataset is empty
+		Yes, No, SUPP;
+		
+		public static IsEmpty parse(String isEmpty) {
+			if (isEmpty == null) {
+				return IsEmpty.No;
+			}
+			if ("YES".equals(isEmpty.toUpperCase())) {
+				return IsEmpty.Yes;
+			} else if ("SUPP".equals(isEmpty.toUpperCase())) {
+				return IsEmpty.SUPP;
+			} else {
+				return IsEmpty.No;
+			}
+		}
 	}
 
+	public class SuppDataset {
+		public String domain = "";
+		public String dataset_name = "";
+		public IsEmpty is_empty = IsEmpty.No;
+	}
+	
 	public class Variable {
+		public String dataset_name = "";
 		public String variable_name = "";
 		public String label = "";
 		public String data_type = "";
@@ -46,6 +63,7 @@ public class SuppUtil {
 		public String mandatory = "";
 		public String evaluator = "";
 	}
+	
 	public class Origin {
 		public String origin = "";	//required
 		public String crf_id = "";
@@ -69,100 +87,203 @@ public class SuppUtil {
 		}
 	}
 	
-	/*
-	 * Scan the dataset table to identify SUPP-- datasets.
+	/**
+	 * Constructor
+	 * @param reader1 Reader of the DATASET sheet
+	 * @param reader2 Reader of the VARIABLE sheet
 	 */
-	public boolean scanDatasets(MetaDataReader reader) {
+	public SuppUtil(MetaDataReader reader1, MetaDataReader reader2) {
 		Hashtable<String, String> hash;
-		boolean hasSuppFlag = false;
-
-		while ((hash = reader.read()) != null) {
-			if(hash.get("Has SUPP") != null && hash.get("Has SUPP").equals("Yes")){
-				suppDatasets.add(hash.get("Dataset Name"));
-				hasSuppFlag = true;
-//Change for v1.3.0
-				datasetAndDomainSet.put(hash.get("Dataset Name"), hash.get("Domain"));
-			}
-		}
-		return hasSuppFlag;
-	}
-
-	public boolean scanVariables(MetaDataReader reader) {
-		Hashtable<String, String> hash;
-		boolean isSuppFlag = false;
-		ArrayList<Variable> variables = null;
-
-		while ((hash = reader.read()) != null) {
-			/* If this is a SUPP variable */
-			if (hash.get("Is SUPP") != null && hash.get("Is SUPP").equals("Yes")) {
-				Variable var = new Variable();
-				/* If the dataset already exists in the list of SUPP datasets */
-				if (suppVariables.containsKey(hash.get("Dataset Name"))) {
-					variables = suppVariables.get(hash.get("Dataset Name"));
-					var.variable_name = hash.get("Variable Name");
-					var.label = hash.get("Label");
-					var.data_type = hash.get("DataType");
-					var.length = hash.get("Length");
-					var.sig_digits = hash.get("SignificantDigits");
-					var.origin.origin = hash.get("Origin");
-					var.origin.crf_id = hash.get("CRF ID");
-					var.origin.crf_page_type = hash.get("CRF Page Type");
-					var.origin.str_crf_page_reference = hash.get("CRF Page Reference");
-					var.mandatory = hash.get("Mandatory");
-					variables.add(var);
-					suppVariables.put(hash.get("Dataset Name"), variables);
-				/* If this variable is for a new dataset */
-				} else {
-					variables = new ArrayList<Variable>();
-					var.variable_name = hash.get("Variable Name");
-					var.label = hash.get("Label");
-					var.data_type = hash.get("DataType");
-					var.length = hash.get("Length");
-					var.sig_digits = hash.get("SignificantDigits");
-					var.origin.origin = hash.get("Origin");
-					var.origin.crf_id = hash.get("CRF ID");
-					var.origin.crf_page_type = hash.get("CRF Page Type");
-					var.origin.str_crf_page_reference = hash.get("CRF Page Reference");
-					var.mandatory = hash.get("Mandatory");
-					variables.add(var);
-					suppVariables.put(hash.get("Dataset Name"), variables);
+		/* For each variable */
+		while ((hash = reader2.read()) != null) {
+			String variable_name = hash.get("Variable Name");
+			String str_is_supp = hash.get("Is SUPP");
+			String str_repeat_n = hash.get("Repeat N");
+			int repeat_n = parseRepeatN(str_repeat_n);
+			/* A SUPP variable is either Is SUPP="Yes" or Repeat N > 0 (excluding TSVAL and COVAL) */
+			if((!StringUtils.isEmpty(str_is_supp) && "Yes".equals(str_is_supp))
+					|| (repeat_n > 0 && !"TSVAL".equals(variable_name) && !"COVAL".equals(variable_name))) {
+				int start = ("Yes".equals(str_is_supp) ? 0 : 1);	//0: this variable and repeating variables, 1: repeating variables
+				for (int i = start; i <= repeat_n; i++) {
+					Variable qval_value = new Variable();
+					qval_value.dataset_name = hash.get("Dataset Name");
+					qval_value.variable_name = getRepeatVariableName(variable_name, i);
+					qval_value.label = getRepeatVariableLabel(hash.get("Label"), i);
+					qval_value.data_type = hash.get("DataType");
+					qval_value.length = getRepeatLength(hash.get("Length"), i);
+					qval_value.sig_digits = hash.get("SignificantDigits");
+					qval_value.origin.origin = hash.get("Origin");
+					qval_value.origin.crf_id = hash.get("CRF ID");
+					qval_value.origin.crf_page_type = hash.get("CRF Page Type");
+					qval_value.origin.str_crf_page_reference = hash.get("CRF Page Reference");
+					qval_value.mandatory = hash.get("Mandatory");
+					qval_values.add(qval_value);
 				}
-				isSuppFlag = true;
-				/* set domain-SEQ Length of parent domain to seqList for IDVARVAL */
-			} else if (hash.get("Is SUPP") != null && !hash.get("Is SUPP").equals("Yes")) {
-				if (hash.get("Variable Name").endsWith("SEQ") && hash.get("Variable Name").length() == 5 && hash.get("Length") != null) {
+			}
+			/* Used for length of IDVARVAL */
+			if (str_is_supp != null && !str_is_supp.equals("Yes")) {
+				if (variable_name.endsWith("SEQ") && variable_name.length() == 5 && hash.get("Length") != null) {
 					seqList.put(hash.get("Dataset Name"), hash.get("Length"));
 				}
 			}
 		}
-		return isSuppFlag;
-	}
-
-	public List<String> getSuppDatasets() {
-		return suppDatasets.stream().sorted((s1, s2) -> s1.compareTo(s2)).collect(Collectors.toList());
-	}
-
-//Change for v1.3.0
-	public Hashtable<String, String> getDatasetAndDomainSet() {
-		return datasetAndDomainSet;
-	}
-
-	public ArrayList<Variable> getSuppVariables(String dataset) {
-		ArrayList<Variable> variables = null;
-
-		variables = suppVariables.get(dataset);
-		if (variables == null) {
-			variables = new ArrayList<>();
+		Set<String> supp_dataset_set = qval_values.stream().map(o -> o.dataset_name).collect(Collectors.toSet());
+		/* For each dataset */
+		while ((hash = reader1.read()) != null) {
+			String dataset_name = hash.get("Dataset Name");
+			IsEmpty is_empty = IsEmpty.parse(hash.get("Is Empty"));
+			if (supp_dataset_set.contains(dataset_name) && is_empty == IsEmpty.No) {
+				SuppDataset dataset = new SuppDataset();
+				dataset.domain = hash.get("Domain");
+				dataset.dataset_name = dataset_name;
+				this.supp_datasets.add(dataset);
+			}
 		}
-		return variables;
+		if (!this.supp_datasets.isEmpty()) {
+			this.is_autosupp_active = true;	//The source spreadsheet is in the Auto-SUPP format
+		}
+		this.supp_dataset_names = this.supp_datasets.stream().map(o -> o.dataset_name).collect(Collectors.toSet());
+		this.qval_value_keys = this.qval_values.stream().map(o -> o.dataset_name + "/" + o.variable_name).collect(Collectors.toSet());
+	}
+	
+	public boolean isAutoSuppActive() {
+		return this.is_autosupp_active;
+	}
+	
+	/**
+	 *  A list of parent datasets that have NSVs (Is SUPP=Yes or Repeat N (excluding TSVAL/COVAL) ).
+	 * @return Parent datasets excluding those with Is Empty = Yes/SUPP
+	 */
+	public List<SuppDataset> listSuppDatasets() {
+		return this.supp_datasets;
+	}
+	public Set<String> getSuppDatasetNames() {
+		return this.supp_dataset_names;
+	}
+	
+	/**
+	 * A list of NSVs (Is SUPP=Yes or Repeat N (excluding TSVAL/COVAL) ) including empty datasets.
+	 * @return
+	 */
+	public List<Variable> listSuppVariables() {
+		return this.qval_values;
+	}
+	public List<Variable> listSuppVariables(String dataset_name) {
+		if (StringUtils.isEmpty(dataset_name)) {
+			return new ArrayList<>();
+		}
+		return this.qval_values.stream().filter(o -> StringUtils.equals(dataset_name, o.dataset_name)).collect(Collectors.toList());
+	}
+	public Set<String> getSuppVariableNames() {
+		return this.qval_value_keys;
+	}
+	
+	/* Return a number from 0 to 99 based on the given "Repeat N" attribute */
+	public static int parseRepeatN(String str_repeat_n) {
+		int repeat_n = 0;
+		if (StringUtils.isEmpty(str_repeat_n)) {
+			return repeat_n;
+		}
+		try {
+			repeat_n = Integer.parseInt(str_repeat_n);
+			if (repeat_n > 99) {	//0 < repeat_n < 100
+				repeat_n = 0;
+			}
+		} catch (NumberFormatException ex) {
+			//Do nothing.
+		}
+		return repeat_n;
+	}
+
+	public static String getRepeatIsSupp(String variable_name, String is_supp, int N) {
+		if (StringUtils.isEmpty(variable_name)) {
+			return "No";
+		}
+		if (StringUtils.isEmpty(is_supp)) {
+			return "No";
+		}
+		if (N == 0) {
+			return is_supp;
+		}
+		/* "No" for TSVAL or COVAL, "Yes" for other Repeat N variables */
+		if (N > 0 && !"TSVAL".equals(variable_name) && !"COVAL".equals(variable_name)) {
+				return "Yes";
+		} else {
+			return "No";
+		}
+	}
+	
+	/* Variable Name += N */
+	public static String getRepeatVariableName(String variable_name, int N) {
+		if (StringUtils.isEmpty(variable_name)) {
+			return variable_name;
+		}
+		if (N == 0) {
+			return variable_name;
+		}
+		if (variable_name.length() >= 8 && 1 <= N && N < 10) {
+			variable_name = variable_name.substring(0, 7) + N;
+		} else if (variable_name.length() == 7 && 10 <= N && N < 100) {
+			variable_name = variable_name.substring(0, 6) + N;
+		} else {
+			variable_name = variable_name + N;
+		}
+		return variable_name;
+	}
+	
+	/* Variable Label += " " + N */
+	public static String getRepeatVariableLabel(String variable_label, int N) {
+		if (StringUtils.isEmpty(variable_label)) {
+			return variable_label;
+		}
+		if (N == 0) {
+			return variable_label;
+		}
+		if (variable_label.length() >= 39 && 1 <= N && N < 10) {
+			variable_label = variable_label.substring(0, 38) + " " + N;
+		} else if (variable_label.length() == 38 && 10 <= N && N < 100) {
+			variable_label = variable_label.substring(0, 37) + " " +  N;
+		} else {
+			variable_label = variable_label + " " + N;
+		}
+		return variable_label;
+	}
+	
+	/* Length = Length - (200 * N) */
+	public static String getRepeatLength(String strLength, int N) {
+		if (StringUtils.isEmpty(strLength)) {
+			return "";
+		}
+		if (N == 0) {
+			return strLength;
+		}
+		try {
+			int length = Integer.parseInt(strLength);
+			length = length - (200 * N);
+			if (length < 1) {
+				length = 1;
+			}
+			return String.valueOf(length);
+		} catch (NumberFormatException ex) {
+			return "";
+		}
+	}
+
+	/* SAS Field Name += N */
+	public static String getRepeatSasFieldName(String r_variable_name, String sas_field_name, int N) {
+		if (StringUtils.isEmpty(sas_field_name)) {
+			return r_variable_name;
+		} else {
+			return getRepeatVariableName(sas_field_name, N);
+		}
 	}
 
 	/* get maximum length of variable name */
 	public int getQnamLength(String dataset) {
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		int length = 0;
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			if (var.variable_name != null && length < var.variable_name.length()){
 				length = var.variable_name.length();
@@ -174,10 +295,10 @@ public class SuppUtil {
 	
 	/* get maximum length of Label */
 	public int getQlabelLength(String dataset) {
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		int length = 0;
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			if (var.label != null && length < var.label.length()){
 				length = var.label.length();
@@ -188,7 +309,7 @@ public class SuppUtil {
 
 	/* get maximum value of length */
 	public String getQvalDataType(String dataset) {
-		ArrayList<Variable> variables = suppVariables.get(dataset);	//NSVs
+		List<Variable> variables = listSuppVariables(dataset);	//NSVs
 		String DEFAULT_TYPE = "text";
 		if (variables == null) {
 			return DEFAULT_TYPE;
@@ -212,10 +333,10 @@ public class SuppUtil {
 
 	/* get maximum value of length */
 	public String getQvalLength(String dataset) {
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		int length = 0;
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			try {
 				if (StringUtils.isNotEmpty(var.length) && length < Integer.parseInt(var.length)) {
@@ -235,10 +356,10 @@ public class SuppUtil {
 
 	/* get maximum value of siginificant digits */
 	public String getQvalSigDigits(String dataset){
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		int sig_digits = 0;
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			try {
 				if (StringUtils.isNotEmpty(var.sig_digits) && sig_digits < Integer.parseInt(var.sig_digits)) {
@@ -259,12 +380,12 @@ public class SuppUtil {
 	/*
 	 * If all Origins are same, return origin value. otherwise return null*/
 	public Origin getQvalOrigin(String dataset) {
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		Origin origin = new Origin();	//Origin of QVAL
 		boolean isFirst = true;
 		boolean notSame = false;	//The flag indicates origin of QVAL is blank.
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			//For the first NSV
 			if (var.origin != null && isFirst == true) {
@@ -316,10 +437,10 @@ public class SuppUtil {
 
 	/* get maximum length of origin */
 	public int getQorigLength(String dataset) {
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		int length = 0;
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			if (var.origin != null && length < StringUtils.length(var.origin.origin)) {
 				length = StringUtils.length(var.origin.origin);
@@ -330,10 +451,10 @@ public class SuppUtil {
 
 	/* get maximum length of Evaluator */
 	public int getQevalLength(String dataset) {
-		ArrayList<Variable> variables = null;
+		List<Variable> variables = null;
 		int length = 1;
 
-		variables = (suppVariables.get(dataset));
+		variables = (listSuppVariables(dataset));
 		for (Variable var : variables) {
 			if (var.evaluator != null && length < StringUtils.length(var.evaluator)) {
 				length = StringUtils.length(var.evaluator);

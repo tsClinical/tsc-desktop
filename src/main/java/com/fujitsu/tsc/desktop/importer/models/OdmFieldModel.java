@@ -111,71 +111,80 @@ public class OdmFieldModel implements Comparable<OdmFieldModel> {
 	/** Question xml:lang */
 	@ExcelColumn( name = "Question xml:lang" , ordinal = 10)
 	public String question_xml_lang;
-	/** IsLog */
+	/** ControlType */
 	@ExcelColumn( name = "ControlType" , ordinal = 11)
 	public String control_type;
 	/** IsLog */
 	@ExcelColumn( name = "IsLog" , ordinal = 12)
 	public String is_log;
-	/** IsLog */
+	/** Derived From */
 	@ExcelColumn( name = "Derived From" , ordinal = 13)
 	public String derived_from;
+	/** Section Label */
+	@ExcelColumn( name = "Section Label" , ordinal = 14)
+	public String section_label;
 	/** DataType */
-	@ExcelColumn( name = "DataType" , ordinal = 14)
+	@ExcelColumn( name = "DataType" , ordinal = 15)
 	public String data_type;
 	/** Length */
-	@ExcelColumn( name = "Length" , ordinal = 15)
+	@ExcelColumn( name = "Length" , ordinal = 16)
 	public Integer length;
 	/** SignificantDigits */
-	@ExcelColumn( name = "SignificantDigits" , ordinal = 16)
+	@ExcelColumn( name = "SignificantDigits" , ordinal = 17)
 	public Integer significant_digits;
 	/** SAS Name */
-	@ExcelColumn( name = "SAS Name" , ordinal = 17)
+	@ExcelColumn( name = "SAS Name" , ordinal = 18)
 	public String sas_name;
 	/** Description */
-	@ExcelColumn( name = "Description" , ordinal = 18)
+	@ExcelColumn( name = "Description" , ordinal = 19)
 	public String description;
 	/** Description xml:lang */
-	@ExcelColumn( name = "Description xml:lang" , ordinal = 19)
+	@ExcelColumn( name = "Description xml:lang" , ordinal = 20)
 	public String description_xml_lang;
 	/** Unit Name */
-	@ExcelColumn( name = "Unit Name" , ordinal = 20)
+	@ExcelColumn( name = "Unit Name" , ordinal = 21)
 	public String crf_unit;
 	/** Codelist */
-	@ExcelColumn( name = "Codelist" , ordinal = 21)
+	@ExcelColumn( name = "Codelist" , ordinal = 22)
 	public String crf_codelist;
 	/** RangeCheck */
-	@ExcelColumn( name = "RangeCheck" , ordinal = 22)
+	@ExcelColumn( name = "RangeCheck" , ordinal = 23)
 	public String range_check;
 	/** SoftHard */
-	@ExcelColumn( name = "SoftHard" , ordinal = 23)
+	@ExcelColumn( name = "SoftHard" , ordinal = 24)
 	public String soft_hard;
 	/** RangeCheck Error Message */
-	@ExcelColumn( name = "RangeCheck Error Message" , ordinal = 24)
+	@ExcelColumn( name = "RangeCheck Error Message" , ordinal = 25)
 	public String range_check_error;
 	/** Formal Expression Context */
-	@ExcelColumn( name = "Formal Expression Context" , ordinal = 25)
+	@ExcelColumn( name = "Formal Expression Context" , ordinal = 26)
 	public String formal_expression_context;
 	/** Formal Expression */
-	@ExcelColumn( name = "Formal Expression" , ordinal = 26)
+	@ExcelColumn( name = "Formal Expression" , ordinal = 27)
 	public String formal_expression;
+	/** Method ID */
+	@ExcelColumn( name = "Method ID" , ordinal = 28)
+	public String method_id;
 	/** Derivation */
-	@ExcelColumn( name = "Derivation" , ordinal = 27)
+	@ExcelColumn( name = "Derivation" , ordinal = 29)
 	public String derivation;
+	/** Condition ID */
+	@ExcelColumn( name = "Condition ID" , ordinal = 30)
+	public String condition_id;
 	/** CollectionExceptionCondition */
-	@ExcelColumn( name = "CollectionExceptionCondition" , ordinal = 28)
+	@ExcelColumn( name = "CollectionExceptionCondition" , ordinal = 31)
 	public String collection_exception_cnd;
 	/** Alias Context */
-	@ExcelColumn( name = "Alias Context" , ordinal = 29)
+	@ExcelColumn( name = "Alias Context" , ordinal = 32)
 	public String alias_context;
 	/** Alias Name */
-	@ExcelColumn( name = "Alias Name" , ordinal = 30)
+	@ExcelColumn( name = "Alias Name" , ordinal = 33)
 	public String alias_name;
 	/** User Note 1 */
-	@ExcelColumn( name = "User Note 1" , ordinal = 31)
+	@ExcelColumn( name = "User Note 1" , ordinal = 34)
 	public String user_note1;
 	/** User Note 2 */
-	@ExcelColumn( name = "User Note 2" , ordinal = 32)
+	@ExcelColumn( name = "User Note 2" , ordinal = 35)
 	public String user_note2;
 
 	public OdmFieldModel(OdmFieldPk key) {
@@ -195,6 +204,7 @@ public class OdmFieldModel implements Comparable<OdmFieldModel> {
 		this.control_type = "";
 		this.is_log = "FALSE";
 		this.derived_from = "";
+		this.section_label = "";
 		this.data_type = "";
 		this.length = -1;
 		this.significant_digits = -1;
@@ -208,7 +218,9 @@ public class OdmFieldModel implements Comparable<OdmFieldModel> {
 		this.range_check_error = "";
 		this.formal_expression_context = "";
 		this.formal_expression = "";
+		this.method_id = "";
 		this.derivation = "";
+		this.condition_id = "";
 		this.collection_exception_cnd = "";
 		this.alias_context = "";
 		this.alias_name = "";
@@ -222,9 +234,9 @@ public class OdmFieldModel implements Comparable<OdmFieldModel> {
 	
 	/**
 	 * Create a new field with new_key by copying a field
-	 * @param field
-	 * @param new_key
-	 * @return
+	 * @param field OdmFieldModel object to clone
+	 * @param new_key Key of the new OdmFieldModel object
+	 * @return A new OdmFieldModel object
 	 */
 	public static OdmFieldModel clone(OdmFieldModel field, OdmFieldPk new_key) {
 		OdmFieldModel new_field = new OdmFieldModel(new_key);
@@ -241,6 +253,7 @@ public class OdmFieldModel implements Comparable<OdmFieldModel> {
 		new_field.control_type = field.control_type;
 		new_field.is_log = field.is_log;
 		new_field.derived_from = field.derived_from;
+		new_field.section_label = field.section_label;
 		new_field.data_type = field.data_type;
 		new_field.length = field.length;
 		new_field.significant_digits = field.significant_digits;
@@ -254,7 +267,9 @@ public class OdmFieldModel implements Comparable<OdmFieldModel> {
 		new_field.range_check_error = field.range_check_error;
 		new_field.formal_expression_context = field.formal_expression_context;
 		new_field.formal_expression = field.formal_expression;
+		new_field.method_id = field.method_id;
 		new_field.derivation = field.derivation;
+		new_field.condition_id = field.condition_id;
 		new_field.collection_exception_cnd = field.collection_exception_cnd;
 		new_field.alias_context = field.alias_context;
 		new_field.alias_name = field.alias_name;

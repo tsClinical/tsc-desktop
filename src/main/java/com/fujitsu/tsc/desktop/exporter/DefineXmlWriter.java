@@ -20,14 +20,19 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
+import com.fujitsu.tsc.desktop.exporter.SuppUtil.IsEmpty;
 import com.fujitsu.tsc.desktop.exporter.SuppUtil.Origin;
+import com.fujitsu.tsc.desktop.exporter.SuppUtil.SuppDataset;
 import com.fujitsu.tsc.desktop.exporter.SuppUtil.Variable;
 import com.fujitsu.tsc.desktop.exporter.WhereClause.Operator;
 import com.fujitsu.tsc.desktop.util.Config;
@@ -52,13 +57,10 @@ public class DefineXmlWriter {
 	private String wDomainKey;	//"W Domain" is the key for SEND/SDTM while "W Dataset Name" is the key for ADaM.
 	private final String DELIMITER;
 	private final String DEFAULTLANG = "en";
-// Changed for v1.2.0 - add ItemGroupDef for SUPP-- when the dataset table has "Has SUPP" column.
 	private Hashtable<String,String> hashUSUBJID; // A list of USUBJIDs in parent datasets of SUPP--.
-	private boolean hasSuppFlag; // Indicate whether the dataset table has "Has SUPP" column.
-	private List<String> suppList; // A list of parent datasets of SUPP--.
+	private List<String> emptyDatasets;	// A list of datasets where Is Empty is Yes
+	private List<String> emptyCodelists;	// A list of codelists referenced from empty datasets only
 	private SuppUtil suppUtil;
-//change for v1.3.0
-	private Hashtable datasetAndDomainSet;//To check dataset of suppList equals domain.
 
 	public enum TagType {
 		DEFAULT, XMLHEADER, STUDY,
@@ -89,12 +91,11 @@ public class DefineXmlWriter {
 		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
 		this.config = config;
 		DELIMITER = config.valueDelimiter;
-// Changed for v1.2.0 - add ItemGroupDef for SUPP-- when the dataset table has "Has SUPP" column.
 		this.hashUSUBJID = new Hashtable<String, String>();
-		this.hasSuppFlag = false;
-		this.suppList = new ArrayList<String>();
+		this.emptyDatasets = new ArrayList<String>();
+		this.emptyCodelists = new ArrayList<String>();
 
-		try {
+//		try {
 			if (this.config.dataSourceType.name().equals("EXCEL")) {
 				reader = new ExcelReader(this.config.e2dDataSourceLocation, this.config.defineDatasetTableName);
 				reader2 = new ExcelReader(this.config.e2dDataSourceLocation, this.config.defineVariableTableName);
@@ -117,26 +118,55 @@ public class DefineXmlWriter {
 
 			indent = 0;
 
-// Changed for v1.2.0 - add ItemGroupDef for SUPP-- when the dataset table has "Has SUPP" column.
+			/* Identify empty datasets */
+			Hashtable<String, String> hash;
+			List<String> emptySuppDatasets = new ArrayList<>();
+			while ((hash = reader.read()) != null) {
+				String dataset_name = hash.get("Dataset Name");
+				IsEmpty isEmpty = IsEmpty.parse(hash.get("Is Empty"));
+				if (isEmpty == IsEmpty.Yes) {
+					this.emptyDatasets.add(dataset_name);
+				} else if (isEmpty == IsEmpty.SUPP) {
+					emptySuppDatasets.add(dataset_name);
+				}
+			}
+			reader.close();
+			/* Identify empty codelists */
+			List<String> nonEmptyCodelists = new ArrayList<>();
+			while ((hash = reader2.read()) != null) {
+				String dataset_name = hash.get("Dataset Name");
+				String codelist_id = hash.get("Codelist");
+				if (!StringUtils.isEmpty(codelist_id)) {
+					if (this.emptyDatasets.contains(dataset_name)) {
+						this.emptyCodelists.add(codelist_id);
+					} else if (emptySuppDatasets.contains(dataset_name) && "Yes".equals(hash.get("Is SUPP"))) {
+						this.emptyCodelists.add(codelist_id);
+					} else {
+						nonEmptyCodelists.add(codelist_id);
+					}
+				}
+			}
+			Iterator<String> codelist_itr = emptyCodelists.iterator();
+			while (codelist_itr.hasNext()) {
+				String codelist_id = codelist_itr.next();
+				if (nonEmptyCodelists.contains(codelist_id)) {
+					codelist_itr.remove();	//Remove non-empty codelists from empty codelists
+				}
+			}
+			reader2.close();
+			
 // Initialize the SuppUtil object for later use - this does not apply to ADaM since ADaM does not have SUPP--.
 			if (!this.datasetType.equals(Config.DatasetType.ADaM)) {
-				suppUtil = new SuppUtil();
-				hasSuppFlag = suppUtil.scanDatasets(reader);
-				suppList = suppUtil.getSuppDatasets();
-//Change for v1.3.0
-				datasetAndDomainSet = suppUtil.getDatasetAndDomainSet();
+				reader.setTable(config.defineDatasetTableName);
+				reader2.setTable(config.defineVariableTableName);
+				suppUtil = new SuppUtil(reader, reader2);
 				reader.close();
-
-				reader.setTable(config.defineVariableTableName);
-				if (!suppUtil.scanVariables(reader)) {
-					hasSuppFlag = false;	// If there is no SUPP variable, then the "Has SUPP" column should be ignored.
-				}
-				reader.close();
+				reader2.close();
 			}
 
-		} catch (NullPointerException ex) {
-			throw new RequiredValueMissingException(ex, errHint);
-		}
+//		} catch (NullPointerException ex) {
+//			throw new RequiredValueMissingException(ex, errHint);
+//		}
 	}
 
 	public void writeXMLHeader() throws IOException, RequiredValueMissingException {
@@ -178,7 +208,6 @@ public class DefineXmlWriter {
 					+ (this.datasetType.equals(Config.DatasetType.ADaM) &&
 							this.config.e2dIncludeResultMetadata == true ?
 							" xmlns:arm=\"http://www.cdisc.org/ns/arm/v1.0\"" : "")
-// Changed for v1.2.0 - apply default value if the source value is blank.
 					+ " ODMVersion=\"" + (hash.get("ODMVersion").equals("") ? config.defineOdmVersion : hash.get("ODMVersion"))
 					+ "\" FileOID=\"" + (hash.get("FileOID").equals("") ? UUID.randomUUID().toString() : hash.get("FileOID"))
 					+ "\" FileType=\"" + (hash.get("FileType").equals("") ? config.defineFileType : hash.get("FileType"))
@@ -252,10 +281,6 @@ public class DefineXmlWriter {
 	public void writeDocumentSection(String docType) throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		errHint.setErrorHint(TagType.DOCUMENTREF, "", "", "", "");
 		try {
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//			reader.setTable(
-//					this.config.getProperty(GeneratorConfig.Parameter.DOCUMENT_TABLE_NAME),
-//					new WhereClause("Type", WhereClause.Operator.EQ, docType));
 			reader.setTable(
 					this.config.defineDocumentTableName,
 					new WhereClause[] { new WhereClause("Type", WhereClause.Operator.EQ, docType) });
@@ -292,6 +317,18 @@ public class DefineXmlWriter {
 		}
 	}
 
+	/**
+	 * This method creates ItemGroupDef from the DATASET sheet excluding empty datasets.
+	 * It calls writeVariableRefs() to create ItemRef (including TS.TSVALn and CO.COVALn) tags from the VARIABLE sheet.
+	 * It also calls writeSuppItemGroupDefSection() that creates ItemGroupDef tags including ItemRef tags for SUPP datasets,
+	 * if the source spreadsheet is in the Auto-SUPP format (i.e. the DATASET sheet has "Has SUPP" column.)
+	 * 
+	 * @throws InvalidParameterException
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeItemGroupDefSection() throws InvalidParameterException, TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			reader.setTable(this.config.defineDatasetTableName);
@@ -301,7 +338,13 @@ public class DefineXmlWriter {
 			String str = null;
 
 			while ((hash = reader.read()) != null) {
-				errHint.setErrorHint(TagType.ITEMGROUPDEF, hash.get("Dataset Name"), "", "", "");
+				String dataset_name = hash.get("Dataset Name");
+				errHint.setErrorHint(TagType.ITEMGROUPDEF, dataset_name, "", "", "");
+				/* Skip if the dataset is empty. */
+				if (this.emptyDatasets.contains(dataset_name)) {
+					continue;
+				}
+				
 				str = insertIndent(indent);
 				str += "<ItemGroupDef OID=\"" + createOID(TagType.ITEMGROUPDEF, hash.get("Dataset Name"), "", "", "", "")	//OID should include dataset name, not domain, considering split datasets.
 						+ (this.datasetType.equals(Config.DatasetType.ADaM) ?
@@ -312,7 +355,6 @@ public class DefineXmlWriter {
 						+ "\" SASDatasetName=\"" + hash.get("Dataset Name")
 						+ "\" Purpose=\"" + hash.get("Purpose")
 						+ "\" def:Structure=\"" + XmlGenerator.escapeString(hash.get("Structure"))
-// Changed for v1.2.0 - "FINDINGS ABOUT" is not included in the C103329 codelist as of Dec 2015.
 						+ "\" def:Class=\"" + (hash.get("Class").equals("FINDINGS ABOUT") ? "FINDINGS" : hash.get("Class"))
 						+ ((hash.get("Comment").equals("")) ? "" :
 							"\" def:CommentOID=\"" + createOID(TagType.COMMENTDEF, hash.get("Dataset Name"), "", "", "", ""))	//OID should include dataset name, not domain, considering split datasets.
@@ -330,9 +372,6 @@ public class DefineXmlWriter {
 
 				str = insertIndent(indent);
 				str += "<TranslatedText xml:lang=\"en\">"
-// Changed for v1.2.0 -.adapt for a file exported from tsClinical matadata
-//					    +Generator.escapeString(hash.get("TranslatedText"))
-//					    + "</TranslatedText>";
 						+((hash.containsKey("TranslatedText"))?
 						    XmlGenerator.escapeString(hash.get("TranslatedText")):
 						  (hash.containsKey("Description"))?
@@ -347,15 +386,11 @@ public class DefineXmlWriter {
 				writer.write(str);
 				writer.newLine();
 
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//				reader2.setTable(this.config.getProperty(GeneratorConfig.Parameter.VARIABLE_TABLE_NAME),
-//						new WhereClause(domainKey, WhereClause.Operator.EQ, hash.get(domainKey)));
 				reader2.setTable(this.config.defineVariableTableName,
 						new WhereClause[] { new WhereClause(domainKey, WhereClause.Operator.EQ, hash.get(domainKey)) });
 				int orderNumber = 1;		//Used for the OrderNumber attribute of the ItemRef tag
 				while ((hash2 = reader2.read()) != null) {
-					if (writeVariableRefs(hash2, hash.get("Dataset Name"), orderNumber))
-						orderNumber++;
+					writeVariableRefs(hash2, hash.get("Dataset Name"), orderNumber++);
 				}
 
 				if (!this.datasetType.equals(Config.DatasetType.ADaM) &&
@@ -397,12 +432,11 @@ public class DefineXmlWriter {
 
 				reader2.close();
 
-			reader.close();
-		}
+				reader.close();
+			}
 
-//Changed for v1.2.0- add Has SUPP
-			if(hasSuppFlag){
-				writeSuppItemGroupDefSection(suppList);
+			if(suppUtil.isAutoSuppActive()){
+				writeSuppItemGroupDefSection();
 			}
 
 		} catch  (NullPointerException ex) {
@@ -411,20 +445,26 @@ public class DefineXmlWriter {
 	}
 
 
-// Changed for v1.2.0 -.add Has SUPP
-	public void writeSuppItemGroupDefSection(List<String> list) throws InvalidParameterException, TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
+	/** 
+	 * This method creates ItemGroupDefs and ItemRefs for SUPP-- datasets.
+	 * 
+	 * @throws InvalidParameterException
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
+	public void writeSuppItemGroupDefSection() throws InvalidParameterException, TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			String str = null;
 
-			for(String name : list){
+			for(SuppDataset dataset : this.suppUtil.listSuppDatasets()){
+				String name = dataset.dataset_name;
 				errHint.setErrorHint(TagType.ITEMGROUPDEF, "SUPP"+name, "", "", "");
 
 				str = insertIndent(indent);
 				str += "<ItemGroupDef OID=\"" + createOID(TagType.ITEMGROUPDEF, "SUPP"+name, "", "", "", "")	//OID should include dataset name, not domain, considering split datasets.
-						+ (this.datasetType.equals(Config.DatasetType.ADaM) ?
-//Change for v1.3.0
-							"" :(name.equals(this.datasetAndDomainSet.get(name)) ?
-									"\" Domain=\"" + "SUPP"+this.datasetAndDomainSet.get(name) : "\" Domain=\"" + "SUPP"+name))
+						+ (this.datasetType.equals(Config.DatasetType.ADaM) ? "" : "\" Domain=\"" + dataset.domain)
 						+ "\" Name=\"" + "SUPP"+name
 						+ "\" Repeating=\""+"Yes"
 						+ "\" IsReferenceData=\""+"No"
@@ -579,94 +619,120 @@ public class DefineXmlWriter {
 		}
 	}
 
-
-
-
-	private boolean writeVariableRefs(Hashtable<String, String> hash, String dataset, int orderNumber) throws IOException, InvalidOidSyntaxException, RequiredValueMissingException {
+	/**
+	 * This method creates ItemRefs (including TSVALn and COVALn) under ItemGroupDef from the VARIABLE sheet.
+	 * Note that TSVALn/COVALn should reference the same MethodOID as that of TSVAL/COVAL.
+	 * @param hash
+	 * @param dataset
+	 * @param orderNumber
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
+	private void writeVariableRefs(Hashtable<String, String> hash, String dataset, int orderNumber) throws IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 
 		errHint.setErrorHint(TagType.ITEMREF, hash.get("Dataset Name"), hash.get("Variable Name"), "", "");
 		try {
-			/* If not ADaM (i.e. if a dataset could be split), check whether the variable is for this split dataset */
-			if (!this.datasetType.equals(Config.DatasetType.ADaM)) {
-				String[] checkValues = hash.get("Dataset Name").split(DELIMITER);
-				boolean isTargetDataset = false;
-				for (int i = 0; i < checkValues.length; i++) {
-					if (checkValues[i].trim().equals(dataset)) {
-						isTargetDataset = true;
-						break;
+			
+			/* Read "Repeat N" */
+			int N = 0;
+			String variable_name = hash.get("Variable Name");
+			String strN = hash.get("Repeat N");
+			if (!StringUtils.isEmpty(strN)) {
+				try {
+					N = Integer.parseInt(strN);
+					if (N > 99) {	//0 < N < 100
+						N = 0;
+					}
+				} catch (NumberFormatException ex) {
+					//Do nothing.
+				}
+			}
+			/* Loop 1 + N times */
+			for (int i = 0; i <= N; i++) {
+				/* Is SUPP = "No" for TSVAL or COVAL, and "Yes" for other Repeat N variables */
+				String is_supp = hash.get("Is SUPP");
+				if (!StringUtils.isEmpty(is_supp)) {
+					if (N > 0 && !"TSVAL".equals(variable_name) && !"COVAL".equals(variable_name)) {
+						is_supp = "Yes";
+					}
+				}
+				/* Variable Name += N */
+				if (!StringUtils.isEmpty(variable_name)) {
+					if (variable_name.length() >= 8 && 1 <= N && N < 10) {
+						variable_name = variable_name.substring(0, 7) + N;
+					} else if (variable_name.length() == 7 && 10 <= N && N < 100) {
+						variable_name = variable_name.substring(0, 6) + N;
 					} else {
-						//isTargetDatset continues to be false.
+						variable_name = variable_name + N;
 					}
 				}
-				if (!isTargetDataset) return false;
+				/* Write ItemRefs for standard variables only. */
+				if (is_supp == null || !is_supp.equals("Yes")) {
+	
+					String str = insertIndent(indent);
+					str += "<ItemRef ItemOID=\"" + createOID(TagType.ITEMREF, hash.get(domainKey), hash.get("Dataset Name"), variable_name, "", "");
+					str += "\"" + " OrderNumber=\"" + new Integer(orderNumber).toString() + "\"";
+					if (hash.get("Mandatory").equals("Yes")) {
+						str += " Mandatory=\"Yes\"";
+					} else {
+						str += " Mandatory=\"No\"";
+					}
+					if (hash.get("Key Sequence") != null && !hash.get("Key Sequence").equals("")) {
+						str += " KeySequence=\"" + hash.get("Key Sequence") + "\"";
+					} else {
+						//Do nothing.
+					}
+					if (hash.get("Origin").equals("Derived")) {
+						str += " MethodOID=\"" + createOID(TagType.METHODDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", "") + "\"";
+					//Changed for v1.2.0-add Has SUPP
+						if(hash.get("Variable Name").equals("USUBJID")){
+							this.hashUSUBJID.put(hash.get("Dataset Name"),createOID(TagType.METHODDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", ""));
+						}
+					} else {
+						//Do nothing.
+					}
+					if (hash.get("Role") != null && !hash.get("Role").equals("")){
+						str += " Role=\"" + hash.get("Role") + "\"";
+						if (hash.get("Role Codelist") != null && !hash.get("Role Codelist").equals("")) {
+						str += " RoleCodeListOID=\"" + createOID(TagType.CODELISTREF, "", "", "", "", formatCodeListID(hash.get("Role Codelist"))) + "\"";
+						}else if (hash.get("Role codelist") != null && !hash.get("Role codelist").equals("")) {
+							str += " RoleCodeListOID=\"" + createOID(TagType.CODELISTREF, "", "", "", "", formatCodeListID(hash.get("Role codelist"))) + "\"";
+						}
+					} else {
+						//Do nothing.
+					}
+					str += "/>";
+	
+					writer.write(str);
+					writer.newLine();
+				}
 			}
-//Changed for v1.2.0-add Has SUPP
-			if (hash.get("Is SUPP") == null || !hash.get("Is SUPP").equals("Yes")) {
-
-				String str = insertIndent(indent);
-				str += "<ItemRef ItemOID=\"" + createOID(TagType.ITEMREF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", "");
-				str += "\"" + " OrderNumber=\"" + new Integer(orderNumber).toString() + "\"";
-				if (hash.get("Mandatory").equals("Yes")) {
-					str += " Mandatory=\"Yes\"";
-				} else {
-					str += " Mandatory=\"No\"";
-				}
-				if (hash.get("Key Sequence") != null && !hash.get("Key Sequence").equals("")) {
-					str += " KeySequence=\"" + hash.get("Key Sequence") + "\"";
-				} else {
-					//Do nothing.
-				}
-				if (hash.get("Origin").equals("Derived")) {
-					str += " MethodOID=\"" + createOID(TagType.METHODDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", "") + "\"";
-				//Changed for v1.2.0-add Has SUPP
-					if(hash.get("Variable Name").equals("USUBJID")){
-						this.hashUSUBJID.put(hash.get("Dataset Name"),createOID(TagType.METHODDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", ""));
-					}
-				} else {
-					//Do nothing.
-				}
-				if (hash.get("Role") != null && !hash.get("Role").equals("")){
-					str += " Role=\"" + hash.get("Role") + "\"";
-					if (hash.get("Role Codelist") != null && !hash.get("Role Codelist").equals("")) {
-					str += " RoleCodeListOID=\"" + createOID(TagType.CODELISTREF, "", "", "", "", formatCodeListID(hash.get("Role Codelist"))) + "\"";
-//Cheanged for v1.2.0-adapt for metadata
-					}else if (hash.get("Role codelist") != null && !hash.get("Role codelist").equals("")) {
-						str += " RoleCodeListOID=\"" + createOID(TagType.CODELISTREF, "", "", "", "", formatCodeListID(hash.get("Role codelist"))) + "\"";
-					}
-				} else {
-					//Do nothing.
-				}
-				str += "/>";
-
-				writer.write(str);
-				writer.newLine();
-			}
-			return true;
 		} catch  (NullPointerException ex) {
 			throw new RequiredValueMissingException(ex, errHint);
 		}
 	}
 
+	/**
+	 * This method creates ItemDefs from the VARIABLE and VALUE sheets.
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeItemDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//		reader.setTable(
-//				this.config.getProperty(GeneratorConfig.Parameter.VARIABLE_TABLE_NAME),
-//				new WhereClause(domainKey, WhereClause.Operator.NE, ""));
 		reader.setTable(
 				this.config.defineVariableTableName,
 				new WhereClause[] { new WhereClause(domainKey, WhereClause.Operator.NE, "")});
 
 		/*
-		 * Generate ItemDef tags for variable-level metadata
+		 * Generate ItemDef tags for variable-level metadata (including variables where Is SUPP=Yes)
 		 */
 		writeItemDefSection(reader);
 
 		/*
 		 * Generate ItemDef tags for value-level metadata
 		 */
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//		reader.setTable(this.config.getProperty(GeneratorConfig.Parameter.VALUE_TABLE_NAME),
-//				new WhereClause("Value Key", WhereClause.Operator.NE, ""));
 		reader.setTable(this.config.defineValueTableName,
 				new WhereClause[] { new WhereClause("Value Key", WhereClause.Operator.NE, "")});
 		HashSet<String> uniqueKeys = new HashSet<>();
@@ -674,26 +740,57 @@ public class DefineXmlWriter {
 		reader.setUniqueKeys(reader.getTableName(), uniqueKeys);
 		writeItemDefSection(reader);
 
-//Changed for v1.2.0-add Has SUPP
 		/*
 		 * Generate ItemDef tags for variable-level metadata of supp
 		 */
-		if (hasSuppFlag) {
+		if (this.suppUtil.isAutoSuppActive()) {
 			writeSuppItemDefSection();
 		}
 
 		reader.close();
 	}
 
+	/**
+	 * This method creates ItemDefs from the VARIABLE or VALUE sheets as given by the reader.
+	 * This method also creates value-level ItemDef for Is SUPP and Repeat N variables when the VARIABLE sheet is given.
+	 * Note that Repeat N for TSVAL/COVAL is considered Is SUPP=No while Repeat N for others are Is SUPP=Yes.
+	 * This method skips processing for empty datasets (i.e. where Is Empty = Yes/SUPP).
+	 * @param reader
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	private void writeItemDefSection(MetaDataReader reader) throws IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			Hashtable<String, String> hash = new Hashtable<String, String>();
 			String str = null;
 
 			while ((hash = reader.read()) != null) {
-//Changed for v1.2.0-add Has SUPP
-					errHint.setErrorHint(TagType.ITEMDEF, hash.get(domainKey), hash.get("Variable Name"), hash.get("Value Key"), "");
+				String dataset_name = hash.get("Dataset Name");
+				String variable_name = hash.get("Variable Name");
+				errHint.setErrorHint(TagType.ITEMDEF, hash.get(domainKey), variable_name, hash.get("Value Key"), "");
+				/* Skip if the dataset is empty (Is Empty=Yes). */
+				if (this.emptyDatasets.contains(dataset_name)) {
+					continue;
+				}
+				/* Skip if this is value-level ItemDef for SUPP (Variables in SuppUtil) and the SUPP is empty (not in Datasets in SuppUtil). */
+				Set<String> supp_dataset_names = this.suppUtil.getSuppDatasetNames();
+				Set<String> supp_variables = this.suppUtil.getSuppVariableNames();
+				if (supp_variables.contains(dataset_name + "/" + variable_name) && !supp_dataset_names.contains(dataset_name)) {
+					continue;
+				}
 
+				/* Read "Repeat N" */
+				int N = SuppUtil.parseRepeatN(hash.get("Repeat N"));
+				N = (supp_dataset_names.contains(dataset_name) ? N : 0);	//Do not create RACEn when SUPP is empty
+				/* Loop 1 + N times */
+				for (int i = 0; i <= N; i++) {	
+					String r_is_supp = SuppUtil.getRepeatIsSupp(variable_name, hash.get("Is SUPP"), N);
+					String r_variable_name = SuppUtil.getRepeatVariableName(variable_name, N);
+					String r_variable_label = SuppUtil.getRepeatVariableLabel(hash.get("Label"), N);
+					String r_length = SuppUtil.getRepeatLength(hash.get("Length"), N);
+					String r_sas_field_name = SuppUtil.getRepeatSasFieldName(r_variable_name, hash.get("SASFieldName"), N);
+					
 					/* STUDYID and USUBJID of SDTM should be written only once */
 					if (!((this.datasetType.equals(Config.DatasetType.SDTM) || this.datasetType.equals(Config.DatasetType.SEND)) &&
 						!hash.get("Domain").equals("DM") &&
@@ -703,34 +800,30 @@ public class DefineXmlWriter {
 						str += "<ItemDef OID=\"";
 						/* If the ItemDef tag is for a variable */
 						if (reader.getTableName().equals(this.config.defineVariableTableName)) {
-//Changed for v1.2.0-add Has SUPP
 							/* if the ItemDef tag is for a supp value*/
-							if (hash.get("Is SUPP") != null && hash.get("Is SUPP").equals("Yes")) {
-								str += createOID(TagType.ITEMDEF, "SUPP"+hash.get("Dataset Name"), "SUPP"+hash.get("Dataset Name"),"QVAL", hash.get("Variable Name"), "")
-										+ "\" Name=\"" + hash.get("Variable Name");
+							if (r_is_supp != null && r_is_supp.equals("Yes")) {
+								str += createOID(TagType.ITEMDEF, "SUPP"+hash.get("Dataset Name"), "SUPP"+hash.get("Dataset Name"),"QVAL", variable_name, "")
+										+ "\" Name=\"" + variable_name;
 							} else {
-								str += createOID(TagType.ITEMDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", "")
-										+ "\" Name=\"" + hash.get("Variable Name");
+								str += createOID(TagType.ITEMDEF, hash.get(domainKey), hash.get("Dataset Name"), variable_name, "", "")
+										+ "\" Name=\"" + variable_name;
 							}
 							/* If the ItemDef tag is for a value */
 						} else if (reader.getTableName().equals(this.config.defineValueTableName)) {
 							str += createOID(TagType.ITEMDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), hash.get("Value Key"), "")
-//								+ "\" Name=\"" + hash.get("Variable Name") + "." + hash.get("Value Key");
 									+ "\" Name=\"" + hash.get("Value Name");
 						} else {
 							//Do nothing.
 						}
 						str += "\" DataType=\"" + hash.get("DataType")
-								+ (hash.get("Length") == null || hash.get("Length").equals("") ?
-										"" : "\" Length=\"" + hash.get("Length"))
+								+ (r_length == null || r_length.equals("") ?
+										"" : "\" Length=\"" + r_length)
 										+ (hash.get("SignificantDigits") == null || hash.get("SignificantDigits").equals("") ?
 												"" : "\" SignificantDigits=\"" + hash.get("SignificantDigits"));
-// Changed for v1.0.1
-//							+ "\" SASFieldName=\"" + hash.get("Variable Name")
 						if (reader.getTableName().equals(this.config.defineVariableTableName)) {
 							str += "\" SASFieldName=\""
-									+ (hash.get("SASFieldName") == null || hash.get("SASFieldName").equals("") ?
-											hash.get("Variable Name") : hash.get("SASFieldName"));
+									+ (r_sas_field_name == null || r_sas_field_name.equals("") ?
+											variable_name : r_sas_field_name);
 						} else if (reader.getTableName().equals(this.config.defineValueTableName)) {
 							str += "\" SASFieldName=\""
 									+ (hash.get("SASFieldName") == null || hash.get("SASFieldName").equals("") ?
@@ -743,7 +836,6 @@ public class DefineXmlWriter {
 						if (hash.get("Comment") != null && !hash.get("Comment").equals("")) {
 							/* If the ItemDef tag is for a variable */
 							if (reader.getTableName().equals(this.config.defineVariableTableName)) {
-//Changed for v1.2.0-add SUPP
 								/* if the ItemDef tag is for a supp value*/
 								if (hash.get("Is SUPP") != null && hash.get("Is SUPP").equals("Yes")) {
 									str += "\" def:CommentOID=\"" + createOID(TagType.COMMENTDEF, "SUPP"+hash.get("Dataset Name"), "SUPP"+hash.get("Dataset Name"), "QVAL", hash.get("Variable Name"), "");
@@ -770,7 +862,7 @@ public class DefineXmlWriter {
 
 						str = insertIndent(indent);
 						str += "<TranslatedText xml:lang=\"en\">"
-								+ XmlGenerator.escapeString(hash.get("Label"))
+								+ XmlGenerator.escapeString(r_variable_label)
 								+ "</TranslatedText>";
 						writer.write(str);
 						writer.newLine();
@@ -857,11 +949,6 @@ public class DefineXmlWriter {
 							writer.newLine();
 
 						} else {
-// Changed for v1.1.0 - def:Origin tag may appear even if the variable has value-level metadata
-//						if (hash.get("Origin") != null && hash.get("Has Value Metadata") != null &&
-//								hash.get("Has Value Metadata").equals("Y")) {
-//							//Do nothing. The def:Origin tag does not have to appear if the variable has value metadata.
-//						} else {
 							if (hash.get("Origin") != null && !hash.get("Origin").equals("")) {
 								str = insertIndent(indent);
 								str += "<def:Origin Type=\"" + hash.get("Origin") + "\"/>";
@@ -871,9 +958,6 @@ public class DefineXmlWriter {
 						}
 
 						/* Write def:ValueListRef tag only for variable-level metadata */
-//Changed for v1.2.0 - add Has SUPP
-//					if (reader.getTableName().equals(this.config.getProperty(GeneratorConfig.Parameter.VARIABLE_TABLE_NAME))) {
-//					if (hash.get("Has Value Metadata") != null && !hash.get("Has Value Metadata").equals("")) {
 						if (reader.getTableName().equals(this.config.defineVariableTableName)) {
 							if (hash.get("Has Value Metadata") != null && (hash.get("Has Value Metadata").equals("Y") || hash.get("Has Value Metadata").equals("Yes"))) {
 								str = insertIndent(indent);
@@ -890,20 +974,27 @@ public class DefineXmlWriter {
 						writer.write(str);
 						writer.newLine();
 					}
+				}	//End loop 1 + N times
 			}
 		} catch  (NullPointerException ex) {
 			throw new RequiredValueMissingException(ex, errHint);
 		}
 	}
 
-
-//Changed for v1.2.0-add ItemDef for Has SUPP
+	/**
+	 * This method generates ItemDef tags for variable-level metadata of supp
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	private void writeSuppItemDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
-		try {
+//		try {
 			String str = null;
 			boolean isFirst = true;
 
-			for (String name : suppList) {
+			/* For each non-empty SUPP dataset (SUPP datasets in SuppUtil) */
+			for (String name : this.suppUtil.getSuppDatasetNames()) {
 				errHint.setErrorHint(TagType.ITEMDEF, "SUPP"+name, "SUPP"+name, "", "");
 
                /*
@@ -1299,18 +1390,21 @@ public class DefineXmlWriter {
 
 			}
 
-		} catch  (NullPointerException ex) {
-			throw new RequiredValueMissingException(ex, errHint);
-		}
+//		} catch  (NullPointerException ex) {
+//			throw new RequiredValueMissingException(ex, errHint);
+//		}
 	}
 
-
+	/**
+	 * Create ValueListDef from VALUE sheet excluding empty datasets.
+	 * This method also creates ValueListDef for QVAL (by calling writeSuppValueListDefSection()).
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeValueListDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//			reader.setTable(
-//					this.config.getProperty(GeneratorConfig.Parameter.VALUE_TABLE_NAME),
-//					new WhereClause("Value Key", WhereClause.Operator.NE, ""));
 			reader.setTable(
 					this.config.defineValueTableName,
 					new WhereClause[] { new WhereClause("Value Key", WhereClause.Operator.NE, "")});
@@ -1323,19 +1417,20 @@ public class DefineXmlWriter {
 			String prevDomainKey = null;		//Used to judge whether a new row belongs to the same variable group as the previous row.
 			String prevVariableName = null;		//Used to judge whether a new row belongs to the same variable group as the previous row.
 			int orderNumber = 1;		//Used for the OrderNumber attribute of ItemRef tag
-//Changed for v1.2.0-add Has SUPP
 			boolean isBlank = true; //Used to judge whether value sheet is blank or not.
 
 			while ((hash = reader.read()) != null) {
 				errHint.setErrorHint(TagType.VALUELISTDEF, hash.get(domainKey), hash.get("Variable Name"), hash.get("Value Key"), "");
-//Changed for v1.2.0-add Has SUPP
+				/* Skip if the dataset is empty. */
+				if (this.emptyDatasets.contains(hash.get("Dataset Name"))) {
+					continue;
+				}
+
 				isBlank = false;
 				/*
 				 *  If this is a new variable group (e.g. VSORRES, VSORRESU, ...),
 				 *  insert def:ValueListDef start and end tags.
 				 */
-// Changed for v1.2.0 - original statement does not work with SDTM split datasets.
-//				if (prevVariableName == null || !(prevDomainKey + prevVariableName).equals(hash.get(domainKey) + hash.get("Variable Name"))) {
 				if (prevVariableName == null || !(prevDomainKey + prevVariableName).equals(hash.get("Dataset Name") + hash.get("Variable Name"))) {
 
 					orderNumber = 1;
@@ -1368,31 +1463,25 @@ public class DefineXmlWriter {
 					//Do nothing.
 				}
 
-//Change for v1.3.0 - if whereClause is nothing
-//				if (hash.get("W Dataset Name").equals("") && !hash.get("W Variable Name").equals("") && !hash.get("W Value Key").equals("")) {
-//				if (hash.get("W Variable Name") != null && !hash.get("W Variable Name").equals("") &&
-//						hash.get("W Dataset Name") != null && !hash.get("W Dataset Name").equals("") &&
-//						hash.get("W Value Key") != null && !hash.get("W Value Key").equals("") &&
-//						hash.get("WhereClauseVariable") != null && !hash.get("WhereClauseVariable").equals("")) {
-					if (hash.get("WhereClauseValue") != null && !hash.get("WhereClauseValue").equals("")) {
-				str += "\">";
-				writer.write(str);
-				writer.newLine();
-				indent++;
-
-				str = insertIndent(indent);
-				str += "<def:WhereClauseRef WhereClauseOID=\""
-						+ createOID(TagType.WHERECLAUSEREF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), hash.get("Value Key"), "")
-						+ "\"/>";
-				writer.write(str);
-				writer.newLine();
-
-				indent--;
-				str = insertIndent(indent);
-				str += "</ItemRef>";
-				writer.write(str);
-				writer.newLine();
-
+				if (hash.get("WhereClauseValue") != null && !hash.get("WhereClauseValue").equals("")) {
+					str += "\">";
+					writer.write(str);
+					writer.newLine();
+					indent++;
+	
+					str = insertIndent(indent);
+					str += "<def:WhereClauseRef WhereClauseOID=\""
+							+ createOID(TagType.WHERECLAUSEREF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), hash.get("Value Key"), "")
+							+ "\"/>";
+					writer.write(str);
+					writer.newLine();
+	
+					indent--;
+					str = insertIndent(indent);
+					str += "</ItemRef>";
+					writer.write(str);
+					writer.newLine();
+	
 				} else {
 					str += "\"/>";
 					writer.write(str);
@@ -1401,14 +1490,11 @@ public class DefineXmlWriter {
 
 
 				orderNumber++;
-// Changed for v1.2.0 - original statment did not work with SDTM split datasets
-//				prevDomainKey = hash.get(domainKey);
 				prevDomainKey = hash.get("Dataset Name");
 				prevVariableName = hash.get("Variable Name");
 			}
 
 			/* Close the def:ValueListDef tag at the end of while loop */
-//Changed for v1.2.0-add Has SUPP
 			if (!isBlank) {
 			indent--;
 			str = insertIndent(indent);
@@ -1420,8 +1506,7 @@ public class DefineXmlWriter {
 			}
 
 			reader.close();
-//Changed for v1.2.0-add ValueListDef for Has SUPP
-			if (hasSuppFlag) {
+			if (this.suppUtil.isAutoSuppActive()) {
 				writeSuppValueListDefSection();
 			}
 
@@ -1431,14 +1516,19 @@ public class DefineXmlWriter {
 		}
 	}
 
-
-//Changed for v1.2.0-add ValueListDef for Has SUPP
+	/**
+	 * This method creates ValueListDef for QVAL excluding empty datasets.
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeSuppValueListDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			String str = null;
 			int orderNumber = 1;		//Used for the OrderNumber attribute of ItemRef tag
 
-			for (String name : suppList) {
+			for (String name : this.suppUtil.getSuppDatasetNames()) {	//getSuppDatasetNames() does not contain empty datasets
 				errHint.setErrorHint(TagType.VALUELISTDEF, "SUPP"+name, "SUPP"+name, "QVAL", "");
 
 				orderNumber = 1;
@@ -1451,8 +1541,7 @@ public class DefineXmlWriter {
 				writer.newLine();
 				indent++;
 
-				for (Variable var : suppUtil.getSuppVariables(name)) {
-//					if(hash.get("Is SUPP").equals("Yes") && hash.get("Dataset Name").equals(name)){
+				for (Variable var : this.suppUtil.listSuppVariables(name)) {
 						str = insertIndent(indent);
 						str += "<ItemRef ItemOID=\""
 								+ createOID(TagType.ITEMREF, "SUPP"+name, "SUPP"+name, "QVAL", var.variable_name, "")
@@ -1491,7 +1580,14 @@ public class DefineXmlWriter {
 		}
 	}
 
-
+	/**
+	 * Create WhereClauseDef from VALUE and RESULT2 sheets.
+	 * This method also creates WhereClauseDef for QVAL (by calling writeSuppWhereClauseDefSection()).
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeWhereClauseDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 
 		/*
@@ -1509,15 +1605,20 @@ public class DefineXmlWriter {
 					new WhereClause[] { new WhereClause("WhereClauseVariable", WhereClause.Operator.NE, "") });
 			writeWhereClauseDefSection(reader);
 		}
-//Changed for v1.2.0-add Has SUPP
-		if (hasSuppFlag) {
+		if (this.suppUtil.isAutoSuppActive()) {
 			writeSuppWhereClauseDefSection();
 		}
 	}
 
-
-
-// Changed for v1.1.0 - added support for Analysis Results Metadata v1.0 for Define.xml v2.0.
+	/**
+	 * This method creates WhereClauseDef from the VALUE or RESULT2 sheets as given by the reader.
+	 * This method skips processing for empty datasets (i.e. where Is Empty = Yes/SUPP).
+	 * @param reader
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeWhereClauseDefSection(MetaDataReader reader) throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 
@@ -1525,24 +1626,17 @@ public class DefineXmlWriter {
 			String str = null;
 			boolean isNewWhereClause = true;	//Default value is true, because the first line is a new WhereClause.
 			String prevKey = null;	//Used to judge whether a new row belongs to the same WhereClause group.
-//			String prevDomainKey = null;	//Used to judge whether a new row belongs to the same value key group as the previous row.
-//			String prevValueKey = null;		//Used to judge whether a new row belongs to the same value key group as the previous row.
-			//1.2.0-add SUPP
 			boolean isBlank = true; //Used to judge whether whereclause is nothing or not.
-//Change for v1.3.0
 			boolean haveWC;
 			while ((hash = reader.read()) != null) {
-//Changed for v1.2.0-add SUPP
+				/* Skip if the dataset is empty. */
+				if (this.emptyDatasets.contains(hash.get("W Dataset Name"))) {
+					continue;
+				}
 				isBlank = false;
 				haveWC = false;
-//Change for v1.3.0
 				if (reader.getTableName().equals(this.config.defineValueTableName)) {
-//					if (hash.get("W Variable Name") != null && !hash.get("W Variable Name").equals("") &&
-//							hash.get("W Dataset Name") != null && !hash.get("W Dataset Name").equals("") &&
-//							hash.get("W Value Key") != null && !hash.get("W Value Key").equals("") &&
-//							hash.get("WhereClauseVariable") != null && !hash.get("WhereClauseVariable").equals("") &&
-//							hash.get("W Domain") != null && !hash.get("W Domain").equals("") &&
-				if (hash.get("WhereClauseValue") != null && !hash.get("WhereClauseValue").equals("")) {
+					if (hash.get("WhereClauseValue") != null && !hash.get("WhereClauseValue").equals("")) {
 						haveWC = true;
 					}
 				} else if (reader.getTableName().equals(this.config.defineResult2TableName)) {
@@ -1565,9 +1659,7 @@ public class DefineXmlWriter {
 				 *  If this is a new value key group (e.g. HEIGHT.CMETRIC, HEIGHT.CNMETRIC, ...),
 				 *  insert def:WhereClauseDef start and end tags.
 				 */
-//				if (prevValueKey == null || !(prevDomainKey + prevValueKey).equals(hash.get(wDomainKey) + hash.get("W Value Key"))) {
 				if (reader.getTableName().equals(this.config.defineValueTableName)) {
-//Changefor v1.3.0 - not write WhereClauseDef, if WhereClause not exsist in excel.
 					if (haveWC) {
 						if (prevKey == null || !prevKey.equals(hash.get(wDomainKey) + "." + hash.get("W Variable Name") + "." + hash.get("W Value Key"))) {
 							isNewWhereClause = true;
@@ -1594,7 +1686,6 @@ public class DefineXmlWriter {
 
 				if (isNewWhereClause == true) {
 					/* If this is not a start of the table, close the def:ValueListDef tag.*/
-//					if (prevValueKey != null) {
 					if (prevKey != null) {
 						indent--;
 						str = insertIndent(indent);
@@ -1606,7 +1697,6 @@ public class DefineXmlWriter {
 
 					str = insertIndent(indent);
 					if (reader.getTableName().equals(this.config.defineValueTableName)) {
-//Change for v1.3.0
 						if (haveWC) {
 							str += "<def:WhereClauseDef OID=\""
 									+ createOID(TagType.WHERECLAUSEDEF, hash.get(wDomainKey), hash.get("W Dataset Name"), hash.get("W Variable Name"), hash.get("W Value Key"), "");
@@ -1619,7 +1709,6 @@ public class DefineXmlWriter {
 						}
 
 					} else if (reader.getTableName().equals(this.config.defineResult2TableName)) {
-//Change for v1.3.0
 						if (haveWC) {
 						str += "<def:WhereClauseDef OID=\""
 								+ createOID(TagType.WHERECLAUSEDEF, "", "", "", "", hash.get("W Display Name") + "." + hash.get("W Result Key") + "." + hash.get("W Dataset Name"));
@@ -1639,11 +1728,7 @@ public class DefineXmlWriter {
 
 				str = insertIndent(indent);
 				if (reader.getTableName().equals(this.config.defineValueTableName)) {
-//Change for v1.3.0
 					if (haveWC) {
-// Changed for v1.1.0 - "W Dataset Name" and "WhereClauseDataset" are now clearly distinguished.
-//					str += "<RangeCheck SoftHard=\"Soft\" def:ItemOID=\""
-//							+ createOID(TagType.ITEMDEF, hash.get(wDomainKey), hash.get("W Dataset Name"), hash.get("WhereClauseVariable"), "", "");
 						str += "<RangeCheck SoftHard=\"Soft\" def:ItemOID=\""
 								+ createOID(TagType.ITEMDEF, hash.get(wDomainKey), hash.get("WhereClauseDataset"), hash.get("WhereClauseVariable"), "", "");
 					} else {
@@ -1658,7 +1743,6 @@ public class DefineXmlWriter {
 					//Do nothing.
 				}
 
-//Change for v1.3.0
 				if (haveWC) {
 				str += "\" Comparator=\"" + hash.get("WhereClauseOperator")
 						+ "\">";
@@ -1684,12 +1768,8 @@ public class DefineXmlWriter {
 
 				}
 
-//				prevDomainKey = hash.get(wDomainKey);
-//				prevValueKey = hash.get("W Value Key");
 				if (reader.getTableName().equals(this.config.defineValueTableName)) {
 					if (haveWC) {
-//Change for 1.3.0
-//					prevKey = hash.get(wDomainKey) + "." + hash.get("W Variable Name") + "." + hash.get("W Value Key");
 					prevKey = hash.get("W Dataset Name") + "." + hash.get("W Variable Name") + "." + hash.get("W Value Key");
 					}
 				} else if (reader.getTableName().equals(this.config.defineResult2TableName)) {
@@ -1703,17 +1783,12 @@ public class DefineXmlWriter {
 
 
 			/* Close the def:WhereClauseDef tag at the end of while loop */
-//Changed for v1.2.0-add Has SUPP
 				if (!isBlank ) { //when value sheet is not blank
-					//Change for v1.3.0
-//					if (haveWC) {
-						indent--;
-						str = insertIndent(indent);
-						str += "</def:WhereClauseDef>";
-						writer.write(str);
-						writer.newLine();
-//					} else {
-//					}
+					indent--;
+					str = insertIndent(indent);
+					str += "</def:WhereClauseDef>";
+					writer.write(str);
+					writer.newLine();
 				} else {
 					//do nothing
 				}
@@ -1724,44 +1799,45 @@ public class DefineXmlWriter {
 		}
 	}
 
-
-//Changed for v1.2.0-add SUPP
+	/**
+	 * This method creates WhereClauseDef (where QNAM EQ variable_name) for QVAL excluding empty datasets.
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeSuppWhereClauseDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 
-//			Hashtable<String, String> hash = new Hashtable<String, String>();
 			String str = null;
 
-			for (String name : suppList) {
+			for (String name : this.suppUtil.getSuppDatasetNames()) {	//getSuppDatasetNames() does not contain empty datasets
 				errHint.setErrorHint(TagType.WHERECLAUSEDEF, "SUPP"+name, "SUPP"+name, "QNAM", "");
 
-//				reader.setTable(this.config.getProperty(GeneratorConfig.Parameter.VARIABLE_TABLE_NAME));
-				//									new WhereClause[] { new WhereClause("Value Key", WhereClause.Operator.NE, "")});
+				for (Variable var : suppUtil.listSuppVariables(name)) {
+					str = insertIndent(indent);
+					str += "<def:WhereClauseDef OID=\""
+							+ createOID(TagType.WHERECLAUSEDEF, "SUPP"+name, "SUPP"+name, "QNAM", var.variable_name, "");
+					str += "\">";
 
-				for (Variable var : suppUtil.getSuppVariables(name)) {
-						str = insertIndent(indent);
-						str += "<def:WhereClauseDef OID=\""
-								+ createOID(TagType.WHERECLAUSEDEF, "SUPP"+name, "SUPP"+name, "QNAM", var.variable_name, "");
-						str += "\">";
+					writer.write(str);
+					writer.newLine();
+					indent++;
 
-						writer.write(str);
-						writer.newLine();
-						indent++;
+					str = insertIndent(indent);
+					str += "<RangeCheck SoftHard=\"Soft\" def:ItemOID=\""
+						+ createOID(TagType.ITEMDEF, "SUPP"+name, "SUPP"+name, "QNAM", "", "")
+					    + "\" Comparator=\"" +"EQ"
+						+ "\">";
 
-						str = insertIndent(indent);
-						str += "<RangeCheck SoftHard=\"Soft\" def:ItemOID=\""
-							+ createOID(TagType.ITEMDEF, "SUPP"+name, "SUPP"+name, "QNAM", "", "")
-						    + "\" Comparator=\"" +"EQ"
-							+ "\">";
+					writer.write(str);
+					writer.newLine();
+					indent++;
 
-						writer.write(str);
-						writer.newLine();
-						indent++;
-
-						str = insertIndent(indent);
-						str += "<CheckValue>" + var.variable_name + "</CheckValue>";
-						writer.write(str);
-						writer.newLine();
+					str = insertIndent(indent);
+					str += "<CheckValue>" + var.variable_name + "</CheckValue>";
+					writer.write(str);
+					writer.newLine();
 					indent--;
 					str = insertIndent(indent);
 					str += "</RangeCheck>";
@@ -1774,14 +1850,20 @@ public class DefineXmlWriter {
 					str += "</def:WhereClauseDef>";
 					writer.write(str);
 					writer.newLine();
-					}
+				}
 			}
-	} catch  (NullPointerException ex) {
-		throw new RequiredValueMissingException(ex, errHint);
+		} catch  (NullPointerException ex) {
+			throw new RequiredValueMissingException(ex, errHint);
+		}
 	}
-}
 
-
+	/**
+	 * This method creates CodeList tags from CODELIST sheet excluding empty codelists
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeCodelistSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			reader.setTable(this.config.defineCodelistTableName);
@@ -1790,17 +1872,19 @@ public class DefineXmlWriter {
 			String str = null;
 			String prevCodelistID = null;		//Used to judge whether a new row belongs to the same codelist group as the previous row.
 			String prevCodelistCode = null;		//Used to retain Codelist Code value of the previous loop to create Alias tags.
-// Changed for v1.2.0
 			boolean isBlank = true; //if codelist is blank
 			boolean hasDecodeValue = false; //false for EnumeratedItem; true for CodelistItem;
 
 			while ((hash = reader.read()) != null) {
 				errHint.setErrorHint(TagType.CODELIST, "", "", "", hash.get("Codelist ID"));
+				/* Skip if the dataset is empty. */
+				if (this.emptyCodelists.contains(hash.get("Codelist ID"))) {
+					continue;
+				}
 
 				/* If this is a new codelist group (e.g. NY, AGEU, SEX ...) */
 				if (prevCodelistID == null || !prevCodelistID.equals(hash.get("Codelist ID"))) {
 
-					// Changed for v1.3.0 - modified to use either EnumeratedItem or CodelistItem per Codelist
 					/* Judge whether the codelist is enumearation or code/decode list using the first record of the codelist */
 					if ((hash.get("Translated Text") == null || hash.get("Translated Text").equals(""))
 							&& (hash.get("Decode") == null || hash.get("Decode").equals(""))) {
@@ -1836,14 +1920,12 @@ public class DefineXmlWriter {
 					/*
 					 *  When it is either a NCI or a sponsor-defined codelist
 					 */
-// Changed for v1.2.0 has SUPP
 					isBlank = false;//codelist is not blank
 					str = insertIndent(indent);
 					str += "<CodeList OID=\""
 							+ createOID(TagType.CODELIST, "", "", "", "", hash.get("Codelist ID"))
 							+ "\" Name=\"" + XmlGenerator.escapeString(hash.get("Codelist Label"))
 							+ "\" DataType=\"" + hash.get("DataType")
-// Changed for v1.0.1
 							+ (hash.get("SASFormatName") == null || hash.get("SASFormatName").equals("") ?
 									"" : "\" SASFormatName=\"" + hash.get("SASFormatName"))
 							+ "\">";
@@ -1858,7 +1940,6 @@ public class DefineXmlWriter {
 				/*
 				 * When a decode value is not provided
 				 */
-//				if (hash.get("Translated Text") == null || hash.get("Translated Text").equals("")) {
 				if (hasDecodeValue == false) {
 					/* When it is a NCI codelist */
 					if (hash.get("Codelist Code") != null && !hash.get("Codelist Code").equals("")) {
@@ -1866,9 +1947,6 @@ public class DefineXmlWriter {
 						str += "<EnumeratedItem CodedValue=\"" + XmlGenerator.escapeString(hash.get("Submission Value"))
 								+ (hash.get("Order Number") == null || hash.get("Order Number").equals("") ?
 										"" : "\" OrderNumber=\"" + hash.get("Order Number"))
-// Changed for v1.2.0 - Explicitly accept only the "Yes" value.
-//								+ (hash.get("ExtendedValue") == null || hash.get("ExtendedValue").equals("") ?
-//										"" : "\" def:ExtendedValue=\"" + hash.get("ExtendedValue"))
 								+ (hash.get("ExtendedValue") != null && hash.get("ExtendedValue").equals("Yes") ?
 										"\" def:ExtendedValue=\"" + hash.get("ExtendedValue") : "")
 								+ "\">";
@@ -1876,7 +1954,6 @@ public class DefineXmlWriter {
 						writer.newLine();
 						indent++;
 
-// Changed for v1.1.0 - Insert Alias only if this is not an extended value
 						if (hash.get("ExtendedValue") != null && !hash.get("ExtendedValue").equals("Yes")) {
 							str = insertIndent(indent);
 							str += "<Alias Name=\"" + hash.get("Code")
@@ -1898,9 +1975,6 @@ public class DefineXmlWriter {
 										"" : "\" Rank=\"" + hash.get("Rank"))
 								+ (hash.get("Order Number") == null || hash.get("Order Number").equals("") ?
 										"" : "\" OrderNumber=\"" + hash.get("Order Number"))
-// Changed for v1.2.0 - Explicitly accept only the "Yes" value.
-//								+ (hash.get("ExtendedValue") == null || hash.get("ExtendedValue").equals("") ?
-//										"" : "\" def:ExtendedValue=\"" + hash.get("ExtendedValue"))
 								+ (hash.get("ExtendedValue") != null && hash.get("ExtendedValue").equals("Yes") ?
 										"\" def:ExtendedValue=\"" + hash.get("ExtendedValue") : "")
 								+ "\"/>";
@@ -1918,9 +1992,6 @@ public class DefineXmlWriter {
 									"" : "\" Rank=\"" + hash.get("Rank"))
 							+ (hash.get("Order Number") == null || hash.get("Order Number").equals("") ?
 									"" : "\" OrderNumber=\"" + hash.get("Order Number"))
-// Changed for v1.2.0 - Explicitly accept only the "Yes" value.
-//							+ (hash.get("ExtendedValue") == null || hash.get("ExtendedValue").equals("") ?
-//									"" : "\" def:ExtendedValue=\"" + hash.get("ExtendedValue"))
 							+ (hash.get("ExtendedValue") != null && hash.get("ExtendedValue").equals("Yes") ?
 									"\" def:ExtendedValue=\"" + hash.get("ExtendedValue") : "")
 							+ "\">";
@@ -1950,7 +2021,6 @@ public class DefineXmlWriter {
 					writer.newLine();
 
 					/* When it is a NCI codelist */
-// Changed for v1.1.0 - Insert Alias only if this is not an extended value
 					if (hash.get("Codelist Code") != null && !hash.get("Codelist Code").equals("")
 							&& !hash.get("ExtendedValue").equals("Yes")) {
 						str = insertIndent(indent);
@@ -1987,7 +2057,6 @@ public class DefineXmlWriter {
 				 */
 			}
 
-// Changed for v1.2.0 has SUPP
 			if (isBlank == false) {
 				indent--;
 				str = insertIndent(indent);
@@ -2035,15 +2104,18 @@ public class DefineXmlWriter {
 		}
 	}
 
+	/**
+	 * This method creates MethodDefs from VARIABLE and VALUE sheets.
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeMethodDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 
 		/*
 		 * Generate MethodDefs for variable-level metadata
 		 */
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//			reader.setTable(
-//					this.config.getProperty(GeneratorConfig.Parameter.VARIABLE_TABLE_NAME),
-//					new WhereClause("Origin", WhereClause.Operator.EQ, "Derived"));
 		reader.setTable(
 				this.config.defineVariableTableName,
 				new WhereClause[] { new WhereClause("Origin", WhereClause.Operator.EQ, "Derived") });
@@ -2099,6 +2171,15 @@ public class DefineXmlWriter {
 		reader.close();
 	}
 
+	/**
+	 * This method creates MethodDefs from VARIABLE or VALUE sheets as given by the reader.
+	 * This method skips processing for empty datasets (i.e. where Is Empty = Yes/SUPP).
+	 * This method does not create MethodDef for Repeat N variables because they reference the same method as the parent.
+	 * @param reader
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	private void writeMethodDefSection(MetaDataReader reader) throws IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -2106,6 +2187,18 @@ public class DefineXmlWriter {
 
 			while ((hash = reader.read()) != null) {
 				errHint.setErrorHint(TagType.METHODDEF, hash.get(domainKey), hash.get("Variable Name"), hash.get("Value Key"), "");
+				String dataset_name = hash.get("Dataset Name");
+				String is_supp = hash.get("Is SUPP");
+				/* Skip if the dataset is empty. */
+				if (this.emptyDatasets.contains(dataset_name)) {
+					continue;
+				}
+				/* Skip if the SUPP dataset is empty. */
+				Set<String> supp_dataset_names = this.suppUtil.getSuppDatasetNames();	//Excluding empty SUPP datasets
+				if ("Yes".equals(is_supp) && !supp_dataset_names.contains(dataset_name)) {
+					continue;
+				}
+
 				/*
 				 * STUDYID and USUBJID of SDTM should be written only once.
 				 * Skip the loop if:
@@ -2121,9 +2214,8 @@ public class DefineXmlWriter {
 						) {
 					str = insertIndent(indent);
 					str += "<MethodDef OID=\"";
-//Change for v1.2.0 add Has SUPP
 					/* If the MethodDef tag is for a variable */
-					if (reader.getTableName().equals(this.config.defineVariableTableName) && (hash.get("Is SUPP") == null || !hash.get("Is SUPP").equals("Yes"))) {
+					if (reader.getTableName().equals(this.config.defineVariableTableName) && (is_supp == null || !is_supp.equals("Yes"))) {
 						str += createOID(TagType.METHODDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", "")
 								+ "\" Name=\"Algorithm to derive " + hash.get("Variable Name");
 					/* If the MethodDef tag is for a value */
@@ -2131,7 +2223,7 @@ public class DefineXmlWriter {
 								str += createOID(TagType.METHODDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), hash.get("Value Key"), "")
 								+ "\" Name=\"Algorithm to derive " + hash.get("Variable Name") + "." + hash.get("Value Key");
 					/* If the Method tag is for a value of suppqual*/
-					} else if (reader.getTableName().equals(this.config.defineVariableTableName) && hash.get("Is SUPP") != null && hash.get("Is SUPP").equals("Yes")) {
+					} else if (reader.getTableName().equals(this.config.defineVariableTableName) && is_supp != null && is_supp.equals("Yes")) {
 						str += createOID(TagType.METHODDEF, "SUPP"+hash.get(domainKey), "SUPP"+hash.get("Dataset Name"), "QVAL", hash.get("Variable Name"), "")
 						+ "\" Name=\"Algorithm to derive " + "SUPP"+hash.get("Dataset Name") + "." + hash.get("Variable Name");
 					} else {
@@ -2172,7 +2264,6 @@ public class DefineXmlWriter {
 						    + "</FormalExpression>";
 						writer.write(str);
 						writer.newLine();
-//Changed for v1.2.0 -adaopt for metadata
 					}else if (hash.get("Formal expression") != null && !hash.get("Formal expression").equals("")) {
 						str = insertIndent(indent);
 						str += "<FormalExpression Context=\""
@@ -2239,15 +2330,18 @@ public class DefineXmlWriter {
 		}
 	}
 
+	/**
+	 * This method creates CommentDefs from DATASET, VARIABLE, VALUE (Value and WC), RESULT1 and RESULT2 sheets.
+	 * @throws TableNotFoundException
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	public void writeCommentDefSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 
 		/*
 		 * Generate CommentDefs for domain-level metadata
 		 */
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//		reader.setTable(
-//				this.config.getProperty(GeneratorConfig.Parameter.DOMAIN_TABLE_NAME),
-//				new WhereClause("Comment", WhereClause.Operator.NE, ""));
 		reader.setTable(
 				this.config.defineDatasetTableName,
 				new WhereClause[] {new WhereClause("Comment", WhereClause.Operator.NE, "") });
@@ -2256,61 +2350,55 @@ public class DefineXmlWriter {
 		/*
 		 * Generate CommentDefs for variable-level metadata
 		 */
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//		reader.setTable(this.config.getProperty(GeneratorConfig.Parameter.VARIABLE_TABLE_NAME),
-//				new WhereClause("Comment", WhereClause.Operator.NE, ""));
 		reader.setTable(this.config.defineVariableTableName,
 				new WhereClause[] { new WhereClause("Comment", WhereClause.Operator.NE, "") });
 		writeCommentDefSection(reader);
 
 		/*
-		 * Generate CommentDefs for variable-level metadata of SUPP-- datasets
-		 * if the input table has "Has SUPP" column, write RDOMAIN method once
+		 * Generate CommentDefs for RDOMAIN of SUPP-- datasets
 		 */
-		if (hasSuppFlag) {
-			String name = suppList.get(0);
-			String str = null;
-			str = insertIndent(indent);
-			str += "<def:CommentDef OID=\"";
-
-			str += createOID(TagType.COMMENTDEF, "SUPP"+name, "SUPP"+name, "RDOMAIN","", "");
-			str += "\">";
-			writer.write(str);
-			writer.newLine();
-			indent++;
-
-			str = insertIndent(indent);
-			str += "<Description>";
-			writer.write(str);
-			writer.newLine();
-			indent++;
-		
-			str = insertIndent(indent);
-			str += "<TranslatedText xml:lang=\"en\">"
-					+ "Domain abbreviation from where data originated."
-					+ "</TranslatedText>";
-			writer.write(str);
-			writer.newLine();
-		
-			indent--;
-			str = insertIndent(indent);
-			str += "</Description>";
-			writer.write(str);
-			writer.newLine();
-		
-			indent--;
-			str = insertIndent(indent);
-			str += "</def:CommentDef>";
-			writer.write(str);
-			writer.newLine();
+		if (this.suppUtil.isAutoSuppActive()) {
+			for (String name : this.suppUtil.getSuppDatasetNames()) {
+				String str = null;
+				str = insertIndent(indent);
+				str += "<def:CommentDef OID=\"";
+	
+				str += createOID(TagType.COMMENTDEF, "SUPP"+name, "SUPP"+name, "RDOMAIN","", "");
+				str += "\">";
+				writer.write(str);
+				writer.newLine();
+				indent++;
+	
+				str = insertIndent(indent);
+				str += "<Description>";
+				writer.write(str);
+				writer.newLine();
+				indent++;
+			
+				str = insertIndent(indent);
+				str += "<TranslatedText xml:lang=\"en\">"
+						+ "Domain abbreviation from where data originated."
+						+ "</TranslatedText>";
+				writer.write(str);
+				writer.newLine();
+			
+				indent--;
+				str = insertIndent(indent);
+				str += "</Description>";
+				writer.write(str);
+				writer.newLine();
+			
+				indent--;
+				str = insertIndent(indent);
+				str += "</def:CommentDef>";
+				writer.write(str);
+				writer.newLine();
+			}
 		}
 
 		/*
 		 * Generate CommentDefs for value-level metadata
 		 */
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//		reader.setTable(this.config.getProperty(GeneratorConfig.Parameter.VALUE_TABLE_NAME),
-//				new WhereClause("Comment", WhereClause.Operator.NE, ""));
 		reader.setTable(this.config.defineValueTableName,
 				new WhereClause[] { new WhereClause("Comment", WhereClause.Operator.NE, "") });
 		HashSet<String> uniqueKeys = new HashSet<>();
@@ -2321,16 +2409,11 @@ public class DefineXmlWriter {
 		/*
 		 * Generate CommentDefs for a where-clause in value-level metadata
 		 */
-// Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
-//		reader.setTable(this.config.getProperty(GeneratorConfig.Parameter.VALUE_TABLE_NAME),
-//				new WhereClause("WhereClause Comment", WhereClause.Operator.NE, ""));
-// Changed for v1.2.0 - There should be only 0 or 1 comment for a WhereClause.
 		reader.setTable(this.config.defineValueTableName,
 				new WhereClause[] { new WhereClause("WhereClause Comment", WhereClause.Operator.NE, ""),
 									new WhereClause("Value Key", WhereClause.Operator.NE, "")});
 		writeCommentDefSection(reader);
 
-// Changed for v1.1.0 - added support for Analysis Results Metadata v1.0 for Define.xml v2.0.
 		/*
 		 * Generate CommentDefs for analysis results metadata
 		 */
@@ -2341,7 +2424,6 @@ public class DefineXmlWriter {
 			writeCommentDefSection(reader);
 		}
 
-// Changed for v1.1.0 - added support for Analysis Results Metadata v1.0 for Define.xml v2.0.
 		/*
 		 * Generate CommentDefs for a where-clause in value-level metadata
 		 */
@@ -2354,6 +2436,13 @@ public class DefineXmlWriter {
 		reader.close();
 	}
 
+	/**
+	 * This method creates CommentDefs from DATASET, VARIABLE, VALUE (Value and WC), RESULT1 or RESULT2 sheets as provided in the reader.
+	 * @param reader
+	 * @throws IOException
+	 * @throws InvalidOidSyntaxException
+	 * @throws RequiredValueMissingException
+	 */
 	private void writeCommentDefSection(MetaDataReader reader) throws IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			Hashtable<String, String> hash = new Hashtable<String, String>();
@@ -2362,18 +2451,24 @@ public class DefineXmlWriter {
 			while ((hash = reader.read()) != null) {
 				if (reader.getTableName().equals(this.config.defineValueTableName)) {
 					errHint.setErrorHint(TagType.COMMENTDEF, hash.get(wDomainKey), hash.get("W Variable Name"), hash.get("W Value Key"), "");
-// Changed for v1.1.0 - added support for Analysis Results Metadata v1.0 for Define.xml v2.0.
-// Begin here
 				} else if (reader.getTableName().equals(this.config.defineResult2TableName)) {
 					errHint.setErrorHint(TagType.COMMENTDEF, "", "", "", "Result Key=" + hash.get("Result Key"));
 				} else if (reader.getTableName().equals(this.config.defineResult2TableName)) {
 					errHint.setErrorHint(TagType.COMMENTDEF, "", "", "", "WhereClauseVariable=" + hash.get("WhereClauseVariable"));
-//Changed for v1.2.0-add Has SUPP
 				}else if(reader.getTableName().equals(this.config.defineVariableTableName) && hash.get("Is SUPP") != null && hash.get("Is SUPP").equals("Yes")) {
 					errHint.setErrorHint(TagType.COMMENTDEF, "SUPP"+hash.get("Dataset Name"), "SUPP"+hash.get("Dataset Name"), hash.get("Variable Name"), "");
 					// End here
 				} else {
 					errHint.setErrorHint(TagType.COMMENTDEF, hash.get(domainKey), hash.get("Variable Name"), hash.get("Value Key"), "");
+				}
+				/* Skip if the dataset is empty. */
+				if (this.emptyDatasets.contains(hash.get("Dataset Name")) || this.emptyDatasets.contains(hash.get("W Dataset Name"))) {
+					continue;
+				}
+				/* Skip if the SUPP dataset is empty. */
+				Set<String> supp_dataset_names = this.suppUtil.getSuppDatasetNames();	//Excluding empty SUPP datasets
+				if ("Yes".equals(hash.get("Is SUPP")) && !supp_dataset_names.contains(hash.get("Dataset Name"))) {
+					continue;
 				}
 				/*
 				 * STUDYID and USUBJID of SDTM should be written only once - generate the CommentDef tag if:
@@ -2397,7 +2492,6 @@ public class DefineXmlWriter {
 					/* If the CommentDef tag is for a domain */
 					if (reader.getTableName().equals(this.config.defineDatasetTableName)) {
 						str += createOID(TagType.COMMENTDEF, hash.get("Dataset Name"), "", "", "", "");	//OID should include dataset name, not domain, considering split datasets.
-//Changed for v1.2.0-add Has SUPP
 						/* If the CommentDef tag is for a variable */
 					} else if (reader.getTableName().equals(this.config.defineVariableTableName) && (hash.get("Is SUPP") == null || !hash.get("Is SUPP").equals("Yes"))) {
 						str += createOID(TagType.COMMENTDEF, hash.get(domainKey), hash.get("Dataset Name"), hash.get("Variable Name"), "", "");
@@ -2551,7 +2645,6 @@ public class DefineXmlWriter {
 		}
 	}
 
-// Changed for v1.1.0 - added support for Analysis Results Metadata v1.0 for Define.xml v2.0.
 	public void writeAnalysisResultSection() throws TableNotFoundException, IOException, InvalidOidSyntaxException, RequiredValueMissingException {
 		try {
 			reader.setTable(this.config.defineResult1TableName);
@@ -2559,8 +2652,6 @@ public class DefineXmlWriter {
 			Hashtable<String, String> hash = null;		//Used to retain a row from RESULT_1 table
 			Hashtable<String, String> hash2 = null;		//Used to retain a row from RESULT_2 table
 			String str = null;
-//			String prevDisplayID = null;		//Used to judge whether a new row belongs to the same variable group as the previous row.
-//			int orderNumber = 1;		//Used for the OrderNumber attribute of ItemRef tag
 			String[] checkValues = null;	//Used to contain split values (when a variable is split by delimiters)
 
 			str = insertIndent(indent);
@@ -2972,8 +3063,6 @@ public class DefineXmlWriter {
 							str = "IT." + domainKey + "." + variableName + "." + valueKey;
 						} else {
 							/* Create an OID using the dataset name (i.e. datasetName), keeping split datasets in mind */
-// Changed for v1.1.0 - domainKey is not necessary to identify ITEMDEF, especially for ItemOID in WhereClauseDef
-//							str = "IT." + domainKey + "." + formattedDatasetName + "." + variableName + "." + valueKey;
 							str = "IT." + formattedDatasetName + "." + variableName + "." + valueKey;
 						}
 					/* If the ItemDef tag is for variable-level metadata */
@@ -2985,7 +3074,7 @@ public class DefineXmlWriter {
 							if (this.datasetType.equals(Config.DatasetType.ADaM)) {
 								str = "IT." + domainKey + "." + variableName;
 							} else {
-								if (hasSuppFlag == true && variableName.equals("RDOMAIN")) {
+								if (this.suppUtil.isAutoSuppActive() == true && variableName.equals("RDOMAIN")) {
 									if (domainKey.startsWith("SUPP") && !domainKey.equals("SUPPQUAL")) {
 										str = "IT.SUPP." + variableName;
 									} else {
@@ -2993,8 +3082,6 @@ public class DefineXmlWriter {
 									}
 								} else {
 									/* Create an OID using the dataset name (i.e. datasetName), keeping split datasets in mind */
-// Changed for v1.1.0 - domainKey is not necessary to identify ITEMDEF, especially for ItemOID in WhereClauseDef
-//									str = "IT." + domainKey + "." + formattedDatasetName + "." + variableName;
 									str = "IT." + formattedDatasetName + "." + variableName;
 								}
 							}
@@ -3056,16 +3143,15 @@ public class DefineXmlWriter {
 						/* If the MethodDef tag is for variable-level metadata */
 					} else {
 						if (!variableName.equals("STUDYID") && !variableName.equals("USUBJID")
-								&& !(hasSuppFlag == true && variableName.equals("RDOMAIN"))) {
+								&& !(this.suppUtil.isAutoSuppActive() == true && variableName.equals("RDOMAIN"))) {
 							if (this.datasetType.equals(Config.DatasetType.ADaM)) {
 								str = "MT." + domainKey + "." + variableName;
 							} else {
 								/* Create an OID using the dataset name (i.e. datasetName), keeping split datasets in mind */
 								str = "MT." + domainKey + "." + formattedDatasetName + "." + variableName;
 							}
-						// Changed for v1.2.0
 						/* If the MethodDef tag is for RDOMAIN in the Auto-SUPP mode */
-						} else if (hasSuppFlag == true && variableName.equals("RDOMAIN")) {
+						} else if (this.suppUtil.isAutoSuppActive() == true && variableName.equals("RDOMAIN")) {
 							if (domainKey.startsWith("SUPP") && !domainKey.equals("SUPPQUAL")) {
 								str = "MT.SUPP." + variableName;
 							} else {

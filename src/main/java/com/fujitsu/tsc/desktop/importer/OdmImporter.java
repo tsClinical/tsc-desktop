@@ -13,6 +13,7 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.xml.sax.*;
 
+import com.fujitsu.tsc.desktop.importer.models.EdcKeysModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmCodelistModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmConditionModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmEventFormModel;
@@ -85,6 +86,7 @@ public class OdmImporter {
 			sax_factory = SAXParserFactory.newInstance();
 //			schema = sch_factory.newSchema(new File("./schema/soft/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
 			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/soft/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
+//			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/soft/fujitsu-ddedcp-1.0/ddedcp1-0-0.xsd"));
 		}
 
 		sax_factory.setSchema(schema);
@@ -113,7 +115,7 @@ public class OdmImporter {
 	
 	public void generateExcel() throws IOException {
 		XSSFWorkbook wb = new XSSFWorkbook();
-		excelStyle = new ExcelStyle(wb);
+		excelStyle = new ExcelStyle(wb, config);
 
 		writeStudySheet(wb, odm);
 		writeUnitSheet(wb, odm);
@@ -125,6 +127,7 @@ public class OdmImporter {
 		writeCodelistSheet(wb, odm);
 		writeMethodSheet(wb, odm);
 		writeConditionSheet(wb, odm);
+		writeEdcKeysSheet(wb, odm);
 
 		FileOutputStream out = new FileOutputStream((String)config.o2eOutputLocation);
 		wb.write(out);
@@ -158,8 +161,8 @@ public class OdmImporter {
 			{"Dataset Character Encoding",   ""},
 			{"Dataset Delimiter",            ""},
 			{"Dataset Text Qualifier",       ""},
-			{"Date Format",                  ("DDworks21/EDC plus".equals(study.source_system) ? "YYYY/MM/DD" : "")},
-			{"Unknown Date/Time Text",       ("DDworks21/EDC plus".equals(study.source_system) ? "UN" : "")},
+			{"Date Format",                  ("DDworks21/EDC plus".equals(study.source_system) || "DDworks EDC plus".equals(study.source_system) ? "YYYY/MM/DD" : "")},
+			{"Unknown Date/Time Text",       ("DDworks21/EDC plus".equals(study.source_system) || "DDworks EDC plus".equals(study.source_system) ? "UN" : "")},
 			{"User Note 1",                  ""},
 			{"User Note 2",                  ""}
 		};
@@ -269,7 +272,7 @@ public class OdmImporter {
 		XSSFSheet sheet = wb.createSheet("FIELD");
 		List<OdmFieldModel> fields = odm.listField();
 		/* Create a header row */
-		String[] header = {"Form Name", "ID", "Item Name", "Level", "Mandatory", "Key Sequence", "Repeating", "IsReferenceData", "Question", "Question xml:lang", "DataType", "Length", "SignificantDigits", "SAS Name", "Description", "Description xml:lang", "Unit Name", "Codelist", "RangeCheck", "SoftHard", "RangeCheck Error Message", "Formal Expression Context", "Formal Expression", "Derivation", "CollectionExceptionCondition", "Alias Context", "Alias Name", "User Note 1", "User Note 2" };
+		String[] header = {"Form Name", "ID", "Item Name", "Level", "Mandatory", "Key Sequence", "Repeating", "IsReferenceData", "Question", "Question xml:lang", "ControlType", "IsLog", "Derived From", "Section Label", "DataType", "Length", "SignificantDigits", "SAS Name", "Description", "Description xml:lang", "Unit Name", "Codelist", "RangeCheck", "SoftHard", "RangeCheck Error Message", "Formal Expression Context", "Formal Expression", "Method ID", "Derivation", "Condition ID", "CollectionExceptionCondition", "Alias Context", "Alias Name", "User Note 1", "User Note 2" };
 		Row row = sheet.createRow(0);
 		for (int i = 0; i < header.length; i++) {
 			row.createCell(i).setCellValue(header[i]);
@@ -288,6 +291,10 @@ public class OdmImporter {
 					field.is_reference_data, //
 					field.question, //
 					field.question_xml_lang, //
+					field.control_type, //
+					field.is_log, //
+					field.derived_from, //
+					field.section_label, //
 					field.data_type, //
 					(field.length > 0 ? field.length.toString() : ""), //
 					(field.significant_digits > 0 ? field.significant_digits.toString() : ""), //
@@ -301,7 +308,9 @@ public class OdmImporter {
 					field.range_check_error, //
 					field.formal_expression_context, //
 					field.formal_expression, //
+					field.method_id, //
 					field.derivation, //
+					field.condition_id, //
 					field.collection_exception_cnd, //
 					field.alias_context, //
 					field.alias_name, //
@@ -359,7 +368,7 @@ public class OdmImporter {
 		XSSFSheet sheet = wb.createSheet("METHOD");
 		List<OdmMethodModel> methods = odm.listMethod();
 		/* Create a header row */
-		String[] header = { "ID", "Name", "Type", "Description", "xml:lang", "Formal Expression Context", "Formal Expression", "Alias Context", "Alias Name", "User Note 1", "User Note 2" };
+		String[] header = { "Method ID", "Method Name", "Method Type", "Description", "xml:lang", "Formal Expression Context", "Formal Expression", "Alias Context", "Alias Name", "User Note 1", "User Note 2" };
 		Row row = sheet.createRow(0);
 		for (int i = 0; i < header.length; i++) {
 			row.createCell(i).setCellValue(header[i]);
@@ -382,7 +391,7 @@ public class OdmImporter {
 		XSSFSheet sheet = wb.createSheet("CONDITION");
 		List<OdmConditionModel> conditions = odm.listCondition();
 		/* Create a header row */
-		String[] header = { "ID", "Name", "Description", "xml:lang", "Formal Expression Context", "Formal Expression", "Alias Context", "Alias Name", "User Note 1", "User Note 2" };
+		String[] header = { "Condition ID", "Condition Name", "Description", "xml:lang", "Formal Expression Context", "Formal Expression", "Alias Context", "Alias Name", "User Note 1", "User Note 2" };
 		Row row = sheet.createRow(0);
 		for (int i = 0; i < header.length; i++) {
 			row.createCell(i).setCellValue(header[i]);
@@ -397,6 +406,32 @@ public class OdmImporter {
 			}
 		}
 		excelStyle.setStyleOdm_ConditionSheet(sheet);
+		excelStyle.setColumnWidth(sheet);
+	}
+
+	public void writeEdcKeysSheet(XSSFWorkbook wb, OdmModel odm) {
+		logger.info("Generating EDC_KEYS Sheet");
+		XSSFSheet sheet = wb.createSheet("EDC_KEYS");
+		EdcKeysModel edc_keys = odm.getEdcKeys();
+		String[][] cells = {
+			{"ODM Key",                   "EDC Key"},
+			{"SubjectKey",                edc_keys.subject_id},
+			{"StudyEventOID",             edc_keys.visit_id},
+			{"StudyEventRepeatKey",       edc_keys.visit_repeat_key},
+			{"FormOID",                   edc_keys.form_id},
+			{"FormRepeatKey",             edc_keys.form_repeat_key},
+			{"ItemGroupOID",              edc_keys.itemgroup_id},
+			{"ItemGroupRepeatKey",        edc_keys.itemgroup_repeat_key},
+			{"Unmapped Common Variables", edc_keys.common_vars},
+			{"ItemOID",                   edc_keys.item_id},
+			{"Value",                     edc_keys.value}
+		};
+		for (int i = 0; i < cells.length; i++) {
+			Row row = sheet.createRow(i);
+			row.createCell(0).setCellValue(cells[i][0]);
+			row.createCell(1).setCellValue(cells[i][1]);
+		}
+		excelStyle.setStyleOdm_EdcKeysSheet(sheet);
 		excelStyle.setColumnWidth(sheet);
 	}
 }

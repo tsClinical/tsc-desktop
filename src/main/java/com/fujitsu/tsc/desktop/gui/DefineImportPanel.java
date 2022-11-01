@@ -12,7 +12,8 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.GroupLayout;
@@ -26,17 +27,15 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
-import org.xml.sax.SAXException;
+import org.apache.log4j.PatternLayout;
 
-import com.fujitsu.tsc.desktop.importer.Importer;
-import com.fujitsu.tsc.desktop.importer.NotOidConnectException;
+import com.fujitsu.tsc.desktop.importer.DefineImporter;
 import com.fujitsu.tsc.desktop.util.Config;
 import com.fujitsu.tsc.desktop.util.ErrorInfo;
-import com.fujitsu.tsc.desktop.validator.ValidationResult;
 
 public class DefineImportPanel extends JPanel implements ActionListener{
 
@@ -59,7 +58,8 @@ public class DefineImportPanel extends JPanel implements ActionListener{
     protected JComboBox<String> defineVersionCB;
     private JLabel datasetTypeL;
     protected JComboBox<String> datasetTypeCB;
-    protected JCheckBox includeResultMetadataCB;
+    protected JCheckBox separateSheetCB;
+    protected JCheckBox mergeNSVtoParentCB;
     protected JComboBox<String> xmlEncodingCB;
     protected JTextField stylesheetLocationTF;
     private JLabel dataSourceLocationL;
@@ -142,6 +142,10 @@ public class DefineImportPanel extends JPanel implements ActionListener{
         defineVersionCB = new JComboBox<String>();
         datasetTypeL = new JLabel("Dataset Type:");
         datasetTypeCB = new JComboBox<String>();
+        separateSheetCB = new JCheckBox("Load Methods/Comments to Separate Sheets");
+        separateSheetCB.setOpaque(false);
+        mergeNSVtoParentCB = new JCheckBox("Merge NSV to Parent Dataset");
+        mergeNSVtoParentCB.setOpaque(false);
         dataSourceLocationL = new JLabel("Data Source Location (.xml):");
         dataSourceLocationTF = new JTextField("");
         outputLocationL = new JLabel("Output Location:");
@@ -158,6 +162,17 @@ public class DefineImportPanel extends JPanel implements ActionListener{
         fileChooser2 = new JFileChooser();
         fileChooser2.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         outputLocationTF.setTransferHandler(new FilePathTransferHandler(outputLocationTF, fileChooser2));	//Add DnD support
+
+        datasetTypeCB.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	String strType = (String)((JComboBox<String>)e.getSource()).getSelectedItem();
+            	if (GuiConstants.getDatasetTypeValue(strType) != Config.DatasetType.ADaM) {
+            		mergeNSVtoParentCB.setVisible(true);
+            	} else {
+            		mergeNSVtoParentCB.setVisible(false);
+            	}
+            }
+        });
 
     	browseButton1.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -204,6 +219,8 @@ public class DefineImportPanel extends JPanel implements ActionListener{
         datasetTypeL.setFont(defaultFont);
         datasetTypeCB.setFont(defaultFont);
         datasetTypeCB.setModel(new DefaultComboBoxModel<String>(Config.DatasetType.stringValues()));
+        separateSheetCB.setFont(defaultFont);
+        mergeNSVtoParentCB.setFont(defaultFont);
         dataSourceLocationL.setFont(defaultFont);
         //dataSourceLocationTF.setFont(defaultFont);	//Non-english characters can be included in the path.
         dataSourceLocationTF.setEditable(false);
@@ -218,6 +235,16 @@ public class DefineImportPanel extends JPanel implements ActionListener{
         /* Populate values from config */
         defineVersionCB.setSelectedItem(config.d2eDefineVersion);
         datasetTypeCB.setSelectedItem(config.d2eDatasetType);
+        if (config.d2eSeparateSheet) {
+        	separateSheetCB.setSelected(true);
+        } else {
+        	separateSheetCB.setSelected(false);
+        }
+        if (config.d2eMergeNSVtoParent) {
+        	mergeNSVtoParentCB.setSelected(true);
+        } else {
+        	mergeNSVtoParentCB.setSelected(false);
+        }
         dataSourceLocationTF.setText(config.d2eDataSourceLocation);
         outputLocationTF.setText(config.d2eOutputLocation);
 
@@ -235,7 +262,12 @@ public class DefineImportPanel extends JPanel implements ActionListener{
                 .addGap(GuiConstants.CONFIG_GAP_HORIZONTAL, GuiConstants.CONFIG_GAP_HORIZONTAL, GuiConstants.CONFIG_GAP_HORIZONTAL)
                 .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(defineVersionCB, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE)
-            		.addComponent(datasetTypeCB, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(bodyPanelLayout.createSequentialGroup()
+                    		.addComponent(datasetTypeCB, GroupLayout.PREFERRED_SIZE, 160, GroupLayout.PREFERRED_SIZE)
+                        	.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        	.addComponent(separateSheetCB)
+                        	.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        	.addComponent(mergeNSVtoParentCB))
                     .addComponent(dataSourceLocationTF, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
                     .addComponent(outputLocationTF, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE))
                 .addGap(GuiConstants.CONFIG_GAP_HORIZONTAL, GuiConstants.CONFIG_GAP_HORIZONTAL, GuiConstants.CONFIG_GAP_HORIZONTAL)
@@ -253,25 +285,26 @@ public class DefineImportPanel extends JPanel implements ActionListener{
             .addGroup(bodyPanelLayout.createSequentialGroup()
                 .addContainerGap(GuiConstants.CONFIG_GAP_TOP, GuiConstants.CONFIG_GAP_TOP)
                 .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(defineVersionL)
-                        .addComponent(defineVersionCB, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-                    .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
-                    .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(datasetTypeL)
-                        .addComponent(datasetTypeCB, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-//                        .addComponent(includeResultMetadataCB))
-                    .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
-                    .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(dataSourceLocationL)
-                        .addComponent(dataSourceLocationTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(browseButton1)
-                        .addComponent(clearButton1))
-                    .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
-                    .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                        .addComponent(outputLocationL)
-                        .addComponent(outputLocationTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                        .addComponent(browseButton2)
-                        .addComponent(clearButton2))
+                    .addComponent(defineVersionL)
+                    .addComponent(defineVersionCB, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
+                .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(datasetTypeL)
+                    .addComponent(datasetTypeCB, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(separateSheetCB)
+                    .addComponent(mergeNSVtoParentCB))
+                .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
+                .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(dataSourceLocationL)
+                    .addComponent(dataSourceLocationTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(browseButton1)
+                    .addComponent(clearButton1))
+                .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
+                .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(outputLocationL)
+                    .addComponent(outputLocationTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(browseButton2)
+                    .addComponent(clearButton2))
                 .addContainerGap(GuiConstants.CONFIG_GAP_BOTTOM, GuiConstants.CONFIG_GAP_BOTTOM))
         );
     }
@@ -330,49 +363,51 @@ public class DefineImportPanel extends JPanel implements ActionListener{
 					public void run() {
 						/* Clear DefineImportResultPanel */
 						XmlValidationAppender appender = new XmlValidationAppender(parent.defineImportResultPanel.iResultTable);
+						appender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
 						appender.clear();
+				        logger.addAppender(appender);
 						parent.defineImportResultPanel.outputLocationUrl.setText(null);
 						
 						/* Configure Importer */
 						config.d2eDefineVersion = defineVersionCB.getSelectedItem().toString();
 						config.d2eDatasetType = datasetTypeCB.getSelectedItem().toString();
+						config.d2eSeparateSheet = separateSheetCB.isSelected();
+						config.d2eMergeNSVtoParent = mergeNSVtoParentCB.isSelected();
 						config.d2eDataSourceLocation = dataSourceLocationTF.getText();
 						config.d2eOutputLocation = outputLocationTF.getText();
 						
-						ValidationResult error1 = new ValidationResult();
-						ValidationResult error2 = new ValidationResult();
-						Importer importer = null;
+						List<ErrorInfo> errors = new ArrayList<>();
+						DefineImporter defineImporter = new DefineImporter(config);
 						try {
-							importer = new Importer(config);
-							error1 = importer.validateHard();
-							if (error1.getResult() == false) {
-								for (ErrorInfo ex : error1.getErrors()) {
-									appender.writeNext(ex);
-								}
-								appender.writeMessage(0);
-							} else {
-								appender.writeMessage(1);
-								error2 = importer.validateSoft();
-								importer.writeExcelGui(error2);
-								if (error2.getErrors().size() != 0) {
-									for (ErrorInfo ex2 : error2.getErrors()) {
-										appender.writeNext(ex2);
+							if (!StringUtils.isEmpty(config.d2eDataSourceLocation)) {
+								errors = defineImporter.validateHard();
+								if (!errors.isEmpty()) {
+									for (ErrorInfo error : errors) {
+										appender.writeNext(error);
 									}
-									appender.writeMessage(2);
+									logger.error("Failed to import the Define-XML due to fatal errors.");
+									return;
 								} else {
-									appender.writeMessage(3);
+									logger.info("No fatal errors have been found in the Define-XML. Importing...");
+									errors = defineImporter.validateSoft();
 								}
-								parent.defineImportResultPanel.outputLocationUrl.setText(
-										new File(outputLocationTF.getText()).getCanonicalPath());
+							}
+							defineImporter.generateExcel();
+							if (!errors.isEmpty()) {
+								for (ErrorInfo error : errors) {
+									appender.writeNext(error);
+								}
+								logger.warn("An Excel file has been created, but some warning(s) exist.");
+							} else {
+								logger.info("An Excel file has been created. No warnings have been found.");
 							}
 							/* Display the output folder on the gResultPanel. */
-						} catch (IOException | SAXException | ParserConfigurationException | NotOidConnectException ex) {
-							logger.error(ex.getMessage());
-							for (StackTraceElement e : ex.getStackTrace()) {
-								logger.error(e.toString());
-							}
-							ex.printStackTrace();
-				    		appender.writeErrorMessage(ex.getMessage());
+							parent.defineImportResultPanel.outputLocationUrl.setText(
+									new File(outputLocationTF.getText()).getCanonicalPath());
+						} catch (Exception ex) {
+							logger.error(ExceptionUtils.getStackTrace(ex));
+						} finally {
+							logger.removeAppender(appender);
 						}
 				    }
 				};

@@ -12,7 +12,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
 import javax.swing.Box;
 import javax.swing.ImageIcon;
@@ -37,7 +36,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
 	private JMenu defineMenu;
 	private JMenuItem exportDefineMI;	//Convert from Excel to Define-XML
 	private JMenuItem importDefineMI;	//Convert from Define-XML to Excel
-	private JMenuItem importDataMI;	//Import Data Length and aCRF Page Number into Excel
+	private JMenuItem xmlToHtmlMI;		//Convert from Define-XML to HTML
 	
 	private JMenu crfMenu;
 	private JMenuItem exportOdmMI;	//Convert from Excel to ODM-XML
@@ -57,6 +56,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
 	
     /**
      * Creates a new menu bar for tsc-desktop
+     * @param parent The GuiMain object
      */
 	public DesktopMenuBar(GuiMain parent) {
     	this.parent = parent;
@@ -78,7 +78,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
     	defineMenu = createMenu("Define-XML", "custom_integration_instructions_black_48dp.png");
     	exportDefineMI = new JMenuItem("Convert from Excel to Define-XML");
     	importDefineMI = new JMenuItem("Convert from Define-XML to Excel");
-    	//importDataMI = new JMenuItem("Import Data Length and aCRF Page Number into Excel");
+    	xmlToHtmlMI = new JMenuItem("Convert from XML to HTML");
     	
     	crfMenu = createMenu("CRF", "custom_ballot_black_48dp.png");
     	exportOdmMI = new JMenuItem("Convert from Excel to ODM-XML");
@@ -107,7 +107,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
         this.add(defineMenu);
         defineMenu.add(exportDefineMI);
         defineMenu.add(importDefineMI);
-        //defineMenu.add(importDataMI);
+        defineMenu.add(xmlToHtmlMI);
         
         this.add(Box.createRigidArea(new Dimension(10, 1)));
 
@@ -137,7 +137,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
         closeMI.setActionCommand("CLOSE");
         exportDefineMI.setActionCommand("EXPORT_DEFINE");
         importDefineMI.setActionCommand("IMPORT_DEFINE");
-        //importDataMI.setActionCommand("IMPORT_DATA");
+        xmlToHtmlMI.setActionCommand("XML_TO_HTML");
         exportOdmMI.setActionCommand("EXPORT_ODM");
         importOdmMI.setActionCommand("IMPORT_ODM");
         importCrfMI.setActionCommand("CREATE_CRF");
@@ -151,7 +151,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
         closeMI.addActionListener(this);
         exportDefineMI.addActionListener(this);
         importDefineMI.addActionListener(this);
-        //importDataMI.addActionListener(this);
+        xmlToHtmlMI.addActionListener(this);
         exportOdmMI.addActionListener(this);
         importOdmMI.addActionListener(this);
         importCrfMI.addActionListener(this);
@@ -179,7 +179,8 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
            	parent.showPanel(parent.defineExportPanel);
         } else if ("IMPORT_DEFINE".equals(command)) {
            	parent.showPanel(parent.defineImportPanel);
-        } else if ("IMPORT_DATA".equals(command)) {
+        } else if ("XML_TO_HTML".equals(command)) {
+        	parent.showPanel(parent.xmlToHtmlPanel);
         } else if ("EXPORT_ODM".equals(command)) {
         	parent.showPanel(parent.odmExportPanel);
         } else if ("IMPORT_ODM".equals(command)) {

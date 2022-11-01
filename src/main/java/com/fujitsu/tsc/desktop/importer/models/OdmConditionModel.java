@@ -10,6 +10,8 @@ package com.fujitsu.tsc.desktop.importer.models;
 
 import java.util.Objects;
 
+import com.fujitsu.tsc.desktop.importer.ExcelWriter2.ExcelColumn;
+
 /**
  * Java object representing a record (a line) in the CONDITION table of {@link OdmModel}.
  * [Primary Keys]
@@ -60,27 +62,37 @@ public class OdmConditionModel implements Comparable<OdmConditionModel> {
 	    }
 	}
 	
-	/** ID */
+	/** Condition ID */
+	@ExcelColumn( name = "Condition ID" , ordinal = 1)
 	public final String condition_id;
-	/** Name */
+	/** Condition Name */
+	@ExcelColumn( name = "Condition Name" , ordinal = 2)
 	public String condition_name;
 	/** Sort Order */
 	public Integer ordinal;
 	/** Description */
+	@ExcelColumn( name = "Description" , ordinal = 3)
 	public String description;
 	/** xml:lang */
+	@ExcelColumn( name = "xml:lang" , ordinal = 4)
 	public String xml_lang;
 	/** Formal Expression Context */
+	@ExcelColumn( name = "Formal Expression Context" , ordinal = 5)
 	public String formal_expression_context;
 	/** Formal Expression */
+	@ExcelColumn( name = "Formal Expression" , ordinal = 6)
 	public String formal_expression;
 	/** Alias Context */
+	@ExcelColumn( name = "Alias Context" , ordinal = 7)
 	public String alias_context;
 	/** Alias Name */
+	@ExcelColumn( name = "Alias Name" , ordinal = 8)
 	public String alias_name;
 	/** User Note 1 */
+	@ExcelColumn( name = "User Note 1" , ordinal = 9)
 	public String user_note1;
 	/** User Note 2 */
+	@ExcelColumn( name = "User Note 2" , ordinal = 10)
 	public String user_note2;
 
 	public OdmConditionModel(OdmConditionPk key) {

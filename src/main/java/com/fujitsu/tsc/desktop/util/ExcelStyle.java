@@ -8,6 +8,7 @@
 
 package com.fujitsu.tsc.desktop.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
@@ -24,6 +25,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelStyle {
 
+	private final int COEFFICIENT_WIDTH = 265;
+	private Config config;
 	private CellStyle style_lightyellow;
 	private CellStyle style_darkred;
 	private CellStyle style_gray;
@@ -35,19 +38,36 @@ public class ExcelStyle {
 	private XSSFFont font_white;
 	private XSSFFont font_black;
 
-	public ExcelStyle(XSSFWorkbook wb) {
+	public ExcelStyle(XSSFWorkbook wb, Config config) {
 
+		this.config = config;
 		DataFormat format = wb.createDataFormat(); //text
 
 	    //font white
 	    font_white = wb.createFont();
 	    font_white.setFamily(FontFamily.MODERN);
+	    font_white.setFontName(XSSFFont.DEFAULT_FONT_NAME);
 	    font_white.setColor(IndexedColors.WHITE.getIndex());
 
 	    //font_black
 	    font_black = wb.createFont();
 	    font_black.setFamily(FontFamily.MODERN);
+	    font_black.setFontName(XSSFFont.DEFAULT_FONT_NAME);
 	    font_black.setColor(IndexedColors.BLACK.getIndex());
+
+	    //cell_white: Data Rows
+		style_white = wb.createCellStyle(); //first row color
+		style_white.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+		style_white.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+		style_white.setBorderTop(BorderStyle.THIN);
+		style_white.setBorderBottom(BorderStyle.THIN);
+		style_white.setBorderLeft(BorderStyle.THIN);
+		style_white.setBorderRight(BorderStyle.THIN);
+		style_white.setFont(font_black);
+		style_white.setAlignment(HorizontalAlignment.LEFT);
+		style_white.setVerticalAlignment(VerticalAlignment.TOP);
+		style_white.setDataFormat(format.getFormat("text"));
+		style_white.setWrapText(true);
 
 	    //cell_light_yerrow: Data Rows
 		style_lightyellow = wb.createCellStyle(); //first row color
@@ -95,11 +115,11 @@ public class ExcelStyle {
 	     * The following styles are deprecated.
 	     */
 	    //cell_plane
-	    style_white = wb.createCellStyle();
-	    style_white.setAlignment(HorizontalAlignment.LEFT);
-	    style_white.setVerticalAlignment(VerticalAlignment.TOP);
-	    style_white.setDataFormat(format.getFormat("text"));
-	    style_white.setWrapText(true);
+//	    style_white = wb.createCellStyle();
+//	    style_white.setAlignment(HorizontalAlignment.LEFT);
+//	    style_white.setVerticalAlignment(VerticalAlignment.TOP);
+//	    style_white.setDataFormat(format.getFormat("text"));
+//	    style_white.setWrapText(true);
 
 		//light_yerrow_bold
 		style_lightyellow_bold = wb.createCellStyle(); //first row color
@@ -171,7 +191,7 @@ public class ExcelStyle {
 	public XSSFSheet setStyleOdm_StudySheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[]{
 				style_gray,
-				style_lightyellow
+				style_white
 		};
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
@@ -179,632 +199,556 @@ public class ExcelStyle {
 	public XSSFSheet setStyleOdm_UnitSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[8];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 	
 	public XSSFSheet setStyleOdm_EventSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[13];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
 	public XSSFSheet setStyleOdm_EventFormSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[6];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
 	public XSSFSheet setStyleOdm_FormSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[10];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
 	public XSSFSheet setStyleOdm_FieldSheet(XSSFSheet sheet) {
-		CellStyle[] cellStyle = new CellStyle[29];
+		CellStyle[] cellStyle = new CellStyle[35];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
 	public XSSFSheet setStyleOdm_CodelistSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[17];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
 	public XSSFSheet setStyleOdm_MethodSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[11];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
 	public XSSFSheet setStyleOdm_ConditionSheet(XSSFSheet sheet) {
 		CellStyle[] cellStyle = new CellStyle[10];
 
-		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_lightyellow, i++);
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
 		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleUnitSheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			sheet.getRow(j).getCell(0).setCellStyle(style_lightyellow);
-			sheet.getRow(j).getCell(1).setCellStyle(style_lightyellow);
-			sheet.getRow(j).getCell(2).setCellStyle(style_lightyellow);
-			sheet.getRow(j).getCell(3).setCellStyle(style_lightyellow);
-			sheet.getRow(j).getCell(4).setCellStyle(style_lightyellow);
-			sheet.getRow(j).getCell(5).setCellStyle(style_lightyellow);
-		}
-		return sheet;
+	public XSSFSheet setStyleOdm_EdcKeysSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[]{
+				style_gray,
+				style_white
+		};
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleStudySheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			sheet.getRow(j).getCell(0).setCellStyle(style_gray);
-			sheet.getRow(j).getCell(1).setCellStyle(style_lightyellow);
-		}
-		return sheet;
+	public XSSFSheet setStyleDefine_StudySheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[]{
+				style_gray,
+				style_white
+		};
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleDocumentSheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-			sheet.getRow(j).getCell(i).setCellStyle(style_lightyellow);
-			}
-			}
-		return sheet;
+	public XSSFSheet setStyleDefine_StandardSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[16];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleDatasetSheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-			sheet.getRow(j).getCell(i).setCellStyle(style_lightyellow);
-			}
-			}
-		return sheet;
+	public XSSFSheet setStyleDefine_DocumentSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[6];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleVariableSheet(XSSFSheet sheet) {
-		for (int i=0; i<19; i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_lightyellow);
-		}
-		for (int i=19; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_orange_bold);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-			sheet.getRow(j).getCell(i).setCellStyle(style_white);
-			}
-		}
-		return sheet;
+	public XSSFSheet setStyleDefine_DatasetSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[27];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleValueSheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			if (sheet.getRow(j).getCell(0) == null) {
-				for (int i=0; i<29; i++) {
-					if (sheet.getRow(j).getCell(i) == null) {
-						sheet.getRow(j).createCell(i);
-					}
-					sheet.getRow(j).getCell(i).setCellStyle(style_gray);
-				}
-			} else {
-				for (int i=0; i<29; i++) {
-					if (sheet.getRow(j).getCell(i) == null) {
-						sheet.getRow(j).createCell(i);
-					}
-					sheet.getRow(j).getCell(i).setCellStyle(style_lightyellow);
-				}
-			}
-			for (int i=29; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-				sheet.getRow(j).getCell(i).setCellStyle(style_lightorange);
-			}
-		}
-		return sheet;
+	public XSSFSheet setStyleDefine_VariableSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[46];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleDictionarySheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-			sheet.getRow(j).getCell(i).setCellStyle(style_lightyellow);
-			}
-		}
-		return sheet;
+	public XSSFSheet setStyleDefine_ValueSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[47];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleCodelistSheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_lightyellow_bold);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-			sheet.getRow(j).getCell(i).setCellStyle(style_white);
-			}
-		}
+	public XSSFSheet setStyleDefine_Result1Sheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[38];
 
-		return sheet;
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleResult1Sheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			if (sheet.getRow(j).getCell(0) == null) {
-				for (int i=0; i<8; i++) {
-					if (sheet.getRow(j).getCell(i) == null) {
-						sheet.getRow(j).createCell(i);
-					}
-					sheet.getRow(j).getCell(i).setCellStyle(style_gray);
-				}
-			} else {
-				for (int i=0; i<8; i++) {
-					if (sheet.getRow(j).getCell(i) == null) {
-						sheet.getRow(j).createCell(i);
-					}
-					sheet.getRow(j).getCell(i).setCellStyle(style_lightgreen);
-				}
-			}
-			for (int i=8; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-				sheet.getRow(j).getCell(i).setCellStyle(style_lightyellow);
-			}
-		}
+	public XSSFSheet setStyleDefine_Result2Sheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[13];
 
-		return sheet;
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
-	public XSSFSheet setStyleResult2Sheet(XSSFSheet sheet) {
-		for (int i=0; i<sheet.getRow(0).getLastCellNum(); i++) {
-			sheet.getRow(0).getCell(i).setCellStyle(style_darkred);
-		}
-		for (int j=1; j<=sheet.getLastRowNum(); j++) {
-			if (sheet.getRow(j).getCell(0) == null) {
-				for (int i=0; i<6; i++) {
-					if (sheet.getRow(j).getCell(i) == null) {
-						sheet.getRow(j).createCell(i);
-					}
-					sheet.getRow(j).getCell(i).setCellStyle(style_gray);
-				}
-			} else {
-				for (int i=0; i<6; i++) {
-					if (sheet.getRow(j).getCell(i) == null) {
-						sheet.getRow(j).createCell(i);
-					}
-					sheet.getRow(j).getCell(i).setCellStyle(style_lightyellow);
-				}
-			}
-			for (int i=6; i<sheet.getRow(0).getLastCellNum(); i++) {
-				if (sheet.getRow(j).getCell(i) == null) {
-					sheet.getRow(j).createCell(i);
-				}
-				sheet.getRow(j).getCell(i).setCellStyle(style_lightorange);
-			}
-		}
-		return sheet;
+	public XSSFSheet setStyleDefine_DictionarySheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[17];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
 	}
 
+	public XSSFSheet setStyleDefine_MethodSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[15];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
+	}
+
+	public XSSFSheet setStyleDefine_CommentSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[11];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
+	}
+
+	public XSSFSheet setStyleDefine_CodelistSheet(XSSFSheet sheet) {
+		CellStyle[] cellStyle = new CellStyle[27];
+
+		for(int i = 0; i < cellStyle.length; cellStyle[i] = style_white, i++);
+		return setStyleSheet_FreeStyle(sheet, cellStyle);
+	}
 
 	public XSSFSheet setColumnWidth(XSSFSheet sheet) {
 
+		String sheet_name = sheet.getSheetName();
 		XSSFRow column = sheet.getRow(0);
-		for (int i=0; i<column.getLastCellNum(); i++) {
-
-			if (column.getCell(i).toString().equals("Property Name")) {
-			    sheet.setColumnWidth(i, 7000);
-			    
-			} else if (column.getCell(i).toString().equals("Property Value")) {
-				sheet.setColumnWidth(i, 10000);
-
-			} else if (column.getCell(i).toString().equals("ID")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Type")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("href")) {
-				sheet.setColumnWidth(i, 8000);
-
-			  } else if (column.getCell(i).toString().equals("Title")) {
-				sheet.setColumnWidth(i, 9000);
-
-			  } else if (column.getCell(i).toString().equals("Domain")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Dataset Name")) {
-				sheet.setColumnWidth(i, 3500);
-
-			  } else if (column.getCell(i).toString().equals("Has SUPP")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Repeating")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("IsReferenceData")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Purpose")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Structure")) {
-				sheet.setColumnWidth(i, 20000);
-
-			  } else if (column.getCell(i).toString().equals("Class")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Comment")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("DocumentID")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Document Page Type")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Document Page Reference")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Description")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Alias")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Variable Name")) {
-				sheet.setColumnWidth(i, 4500);
-
-			  } else if (column.getCell(i).toString().equals("Is SUPP")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Label")) {
-				sheet.setColumnWidth(i, 12000);
-
-			  } else if (column.getCell(i).toString().equals("Mandatory")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Key Sequence")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("DataType")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Length")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("SignificantDigits")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("SASFieldName")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("DisplayFormat")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Codelist")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Origin")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Derivation Type")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("CRF ID")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("CRF Page Type")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("CRF Page Reference")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Has Value Metadata")) {
-				sheet.setColumnWidth(i, 4500);
-
-			  } else if (column.getCell(i).toString().equals("Predecessor/Derivation")) {
-				sheet.setColumnWidth(i, 17000);
-
-			  } else if (column.getCell(i).toString().equals("Role")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Role codelist")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Formal expression context")) {
-				sheet.setColumnWidth(i, 7000);
-
-			  } else if (column.getCell(i).toString().equals("Formal expression")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Value Name")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Value Key")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("W Domain")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("W Dataset Name")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("W Variable Name")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("W Value Key")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("WhereClauseDataset")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("WhereClauseVariable")) {
-				sheet.setColumnWidth(i, 5500);
-
-			  } else if (column.getCell(i).toString().equals("WhereClauseOperator")) {
-				sheet.setColumnWidth(i, 5500);
-
-			  } else if (column.getCell(i).toString().equals("WhereClauseValue")) {
-				sheet.setColumnWidth(i, 7000);
-
-			  } else if (column.getCell(i).toString().equals("WhereClause Comment")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("W xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("Dictionary ID")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Name")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Version")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("ref")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Codelist ID")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Codelist Code")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Codelist Label")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Code")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("SASFormatName")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Order Number")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("Rank")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("ExtendedValue")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("Submission Value")) {
-				sheet.setColumnWidth(i, 7000);
-
-			  } else if (column.getCell(i).toString().equals("Translated Text")) {
-				sheet.setColumnWidth(i, 8000);
-
-			  } else if (column.getCell(i).toString().equals("Display Name")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Display Description")) {
-				sheet.setColumnWidth(i, 8000);
-
-			  } else if (column.getCell(i).toString().equals("Display xmllang")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Leaf ID")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Leaf Page Type")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Leaf Page Reference")) {
-				sheet.setColumnWidth(i, 3500);
-
-			  } else if (column.getCell(i).toString().equals("W Display Name")) {
-				sheet.setColumnWidth(i, 3500);
-
-			  } else if (column.getCell(i).toString().equals("Result Key")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Result Description")) {
-				sheet.setColumnWidth(i, 8000);
-
-			  } else if (column.getCell(i).toString().equals("Result xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("ParameterOID Dataset")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Analysis Reason")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Analysis Purpose")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Documentation ID")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("Documentation Page Type")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Documentation Page Reference")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Documentation Text")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Documentation xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("Programming Code Context")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Programming Code Text")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Programming Code Document ID")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Programming Code Document Page Type")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Programming Code Document Page Reference")) {
-				sheet.setColumnWidth(i, 5000);
-
-			  } else if (column.getCell(i).toString().equals("Datasets Comment")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Datasets xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("Analysis Variable")) {
-				sheet.setColumnWidth(i, 3000);
-
-			  } else if (column.getCell(i).toString().equals("W Result Key")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("User Note 1")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("User Note 2")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Decode")) {
-				sheet.setColumnWidth(i, 10000);
-				
-			  } else if (column.getCell(i).toString().equals("Symbol")) {
-				sheet.setColumnWidth(i, 6000);
-				
-			  } else if (column.getCell(i).toString().equals("Category")) {
-				sheet.setColumnWidth(i, 6000);
-				
-			  } else if (column.getCell(i).toString().equals("Alias Context")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Alias Name")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("CollectionExceptionCondition")) {
-				sheet.setColumnWidth(i, 8000);
-				
-			  } else if (column.getCell(i).toString().equals("Event Name")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Form Name")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("PdfFileName")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Item Name")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Level")) {
-				sheet.setColumnWidth(i, 2000);
-
-			  } else if (column.getCell(i).toString().equals("Question")) {
-				sheet.setColumnWidth(i, 10000);
-
-			  } else if (column.getCell(i).toString().equals("Question xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("Description xml:lang")) {
-				sheet.setColumnWidth(i, 2500);
-
-			  } else if (column.getCell(i).toString().equals("SAS Name")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Unit Name")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("RangeCheck")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("SoftHard")) {
-				sheet.setColumnWidth(i, 2000);
-
-			  } else if (column.getCell(i).toString().equals("RangeCheck Error Message")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Formal Expression Context")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("Formal Expression")) {
-				sheet.setColumnWidth(i, 6000);
-
-			  } else if (column.getCell(i).toString().equals("Derivation")) {
-				sheet.setColumnWidth(i, 4000);
-
-			  } else if (column.getCell(i).toString().equals("User Code")) {
-				sheet.setColumnWidth(i, 7000);
-
-			  } else if (column.getCell(i).toString().equals("Message")) {
+		for (int i = 0; i < column.getLastCellNum(); i++) {
+			XSSFCell cell = column.getCell(i);
+			if (cell == null) {
+				continue;
+			}
+			String column_name = cell.getStringCellValue();
+			if (StringUtils.isEmpty(column_name)) {
+				continue;
+			}
+			/* Common Columns */
+			if ("CommentOID".equals(column_name) || "OID".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("Comment".equals(column_name)) {
+				sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+			} else if ("Language".equals(column_name) || "xml:lang".equals(column_name)) {
+				sheet.setColumnWidth(i, 8 * COEFFICIENT_WIDTH);
+			} else if ("DocumentID".equals(column_name)) {
+				sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+			} else if ("Document Page Type".equals(column_name) || "CRF Page Type".equals(column_name)) {
+				sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+			} else if ("Document Page Reference".equals(column_name) || "CRF Page Reference".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("Document First Page".equals(column_name) || "CRF First Page".equals(column_name)) {
+				sheet.setColumnWidth(i, 16 * COEFFICIENT_WIDTH);
+			} else if ("Document Last Page".equals(column_name) || "CRF Last Page".equals(column_name)) {
+				sheet.setColumnWidth(i, 16 * COEFFICIENT_WIDTH);
+			} else if ("Document Page Title".equals(column_name) || "CRF Page Title".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("Dataset Name".equals(column_name)) {
+				sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+			} else if ("No Data".equals(column_name)) {
+				sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+			} else if ("Standard".equals(column_name)) {
+				sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+			} else if ("Repeating".equals(column_name)) {
+				sheet.setColumnWidth(i, 8 * COEFFICIENT_WIDTH);
+			} else if ("IsReferenceData".equals(column_name)) {
+				sheet.setColumnWidth(i, 13 * COEFFICIENT_WIDTH);
+			} else if ("Variable Name".equals(column_name)) {
+				sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+			} else if ("Label".equals(column_name)) {
+				sheet.setColumnWidth(i, 33 * COEFFICIENT_WIDTH);
+			} else if ("Mandatory".equals(column_name)) {
+				sheet.setColumnWidth(i, 9 * COEFFICIENT_WIDTH);
+			} else if ("Key Sequence".equals(column_name)) {
+				sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+			} else if ("DataType".equals(column_name)) {
+				sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+			} else if ("Length".equals(column_name)) {
+				sheet.setColumnWidth(i, 12 * COEFFICIENT_WIDTH);
+			} else if ("SignificantDigits".equals(column_name)) {
+				sheet.setColumnWidth(i, 12 * COEFFICIENT_WIDTH);
+			} else if ("SASFieldName".equals(column_name)) {
+				sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+			} else if ("DisplayFormat".equals(column_name)) {
+				sheet.setColumnWidth(i, 12 * COEFFICIENT_WIDTH);
+			} else if ("Codelist".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("Origin".equals(column_name)) {
+				sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+			} else if ("Source".equals(column_name)) {
+				sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+			} else if ("CRF ID".equals(column_name)) {
+				sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+			} else if ("MethodOID".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("Derivation Type".equals(column_name)) {
+				sheet.setColumnWidth(i, 12 * COEFFICIENT_WIDTH);
+			} else if ("Predecessor/Derivation".equals(column_name)) {
+				sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+			} else if ("FormalExpression Context".equals(column_name)) {
+				sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+			} else if ("FormalExpression Text".equals(column_name)) {
+				sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+			} else if ("Alias Context".equals(column_name)) {
+				sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+			} else if ("Alias Name".equals(column_name) || "Alias".equals(column_name)) {
+				sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+			} else if ("WhereClauseDataset".equals(column_name)) {
+				sheet.setColumnWidth(i, 16 * COEFFICIENT_WIDTH);
+			} else if ("WhereClauseVariable".equals(column_name)) {
+				sheet.setColumnWidth(i, 17 * COEFFICIENT_WIDTH);
+			} else if ("WhereClauseOperator".equals(column_name)) {
+				sheet.setColumnWidth(i, 17 * COEFFICIENT_WIDTH);
+			} else if ("WhereClauseValue".equals(column_name)) {
+				sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+			} else if ("WhereClause CommentOID".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("WhereClause Comment".equals(column_name)) {
+				sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+			} else if ("WhereClause Language".equals(column_name)) {
+				sheet.setColumnWidth(i, 18 * COEFFICIENT_WIDTH);
+			} else if ("Display Name".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("Result Key".equals(column_name)) {
+				sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+			} else if ("User Note 1".equals(column_name)) {
+				sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+			} else if ("User Note 2".equals(column_name)) {
+				sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+			/* STUDY */
+			} else if (StringUtils.equals(sheet_name, config.defineStudyTableName) || StringUtils.equals(sheet_name, config.odmStudyTableName)) {
+				if ("Property Name".equals(column_name)) {
+				    sheet.setColumnWidth(i, 25 * COEFFICIENT_WIDTH);
+				} else if ("Property Value".equals(column_name)) {
+					sheet.setColumnWidth(i, 80 * COEFFICIENT_WIDTH);
+				}
+			/* STANDARD */
+			} else if (StringUtils.equals(sheet_name, config.defineStandardTableName)) {
+				if ("Name".equals(column_name)) {
+				    sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Type".equals(column_name)) {
+					sheet.setColumnWidth(i, 5 * COEFFICIENT_WIDTH);
+				} else if ("Publishing Set".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Version".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Status".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				}
+			/* DOCUMENT */
+			} else if (StringUtils.equals(sheet_name, config.defineDocumentTableName)) {
+				if ("ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Type".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("href".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Title".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				}
+			/* DATASET */
+			} else if (StringUtils.equals(sheet_name, config.defineDatasetTableName)) {
+				if ("Domain".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("Has SUPP".equals(column_name)) {
+						sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				} else if ("Description".equals(column_name) || "TranslatedText".equals(column_name)) {
+					sheet.setColumnWidth(i, 25 * COEFFICIENT_WIDTH);
+				} else if ("SASDatasetName".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("Purpose".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("Structure".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("Class".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Subclass".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Leaf href".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Leaf Title".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				}
+			/* VARIABLE */
+			} else if (StringUtils.equals(sheet_name, config.defineVariableTableName)) {
+				if ("Is SUPP".equals(column_name)) {
+					sheet.setColumnWidth(i, 6 * COEFFICIENT_WIDTH);
+				} else if ("Repeat N".equals(column_name)) {
+					sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				} else if ("Non Standard".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Sort Order".equals(column_name)) {
+					sheet.setColumnWidth(i, 8 * COEFFICIENT_WIDTH);
+				} else if ("Evaluator".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Has VLM".equals(column_name)) {
+					sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				} else if ("Role".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Role Codelist".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				}
+			/* VALUE */
+			} else if (StringUtils.equals(sheet_name, config.defineValueTableName)) {
+				if ("Value Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("Value Key".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("WhereClauseGroupID".equals(column_name)) {
+					sheet.setColumnWidth(i, 17 * COEFFICIENT_WIDTH);
+				}
+			/* DICTIONARY */
+			} else if (StringUtils.equals(sheet_name, config.defineDictionaryTableName)) {
+				if ("Dictionary ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("DataType".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Version".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("ref".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("href".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				}
+			/* CODELIST */
+			} else if (StringUtils.equals(sheet_name, config.defineCodelistTableName) || StringUtils.equals(sheet_name, config.odmCodelistTableName)) {
+				if ("Codelist ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Codelist Code".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Codelist Label".equals(column_name)) {
+					sheet.setColumnWidth(i, 33 * COEFFICIENT_WIDTH);
+				} else if ("SASFormatName".equals(column_name)) {
+					sheet.setColumnWidth(i, 12 * COEFFICIENT_WIDTH);
+				} else if ("Code".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("User Code".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("Order Number".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("Rank".equals(column_name)) {
+					sheet.setColumnWidth(i, 5 * COEFFICIENT_WIDTH);
+				} else if ("ExtendedValue".equals(column_name)) {
+					sheet.setColumnWidth(i, 11 * COEFFICIENT_WIDTH);
+				} else if ("Submission Value".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("Decode".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("Decode Language".equals(column_name)) {
+					sheet.setColumnWidth(i, 14 * COEFFICIENT_WIDTH);
+				}
+			/* METHOD */
+			} else if (StringUtils.equals(sheet_name, config.defineMethodTableName) || StringUtils.equals(sheet_name, config.odmMethodTableName)) {
+				if ("Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Type".equals(column_name)) {
+					sheet.setColumnWidth(i, 12 * COEFFICIENT_WIDTH);
+				} else if ("Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				}
+			/* RESULT1 */
+			} else if (StringUtils.equals(sheet_name, config.defineResult1TableName)) {
+				if ("Display Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Display Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("Display Language".equals(column_name) || "Result Language".equals(column_name)
+						 || "Documentation Language".equals(column_name) || "Datasets Language".equals(column_name)) {
+					sheet.setColumnWidth(i, 8 * COEFFICIENT_WIDTH);
+				} else if ("Leaf ID".equals(column_name) || "Documentation ID".equals(column_name)
+						|| "Programming Code Document ID".equals(column_name) || "Datasets DocumentID".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Leaf Page Type".equals(column_name) || "Documentation Page Type".equals(column_name)
+						|| "Programming Code Document Page Type".equals(column_name) || "Datasets Document Page Type".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Leaf Page Reference".equals(column_name) || "Documentation Page Reference".equals(column_name)
+						|| "Programming Code Document Page Reference".equals(column_name) || "Datasets Document Page Reference".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Leaf First Page".equals(column_name) || "Documentation First Page".equals(column_name)
+						|| "Programming Code Document First Page".equals(column_name) || "Datasets Document First Page".equals(column_name)) {
+					sheet.setColumnWidth(i, 16 * COEFFICIENT_WIDTH);
+				} else if ("Leaf Last Page".equals(column_name) || "Documentation Last Page".equals(column_name)
+						|| "Programming Code Document Last Page".equals(column_name) || "Datasets Document Last Page".equals(column_name)) {
+					sheet.setColumnWidth(i, 16 * COEFFICIENT_WIDTH);
+				} else if ("Result Key".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Result Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("ParameterOID Dataset".equals(column_name)) {
+					sheet.setColumnWidth(i, 18 * COEFFICIENT_WIDTH);
+				} else if ("Analysis Reason".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Analysis Purpose".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Documentation Text".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("Programming Code Context".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Programming Code Text".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("Datasets CommentOID".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Datasets Comment".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				}
+			/* RESULT2 */
+			} else if (StringUtils.equals(sheet_name, config.defineResult2TableName)) {
+				if ("Analysis Variable".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				}
+			/* ODM - UNIT */
+			} else if (StringUtils.equals(sheet_name, config.odmUnitTableName)) {
+				if ("ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Symbol".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				}
+			/* ODM - EVENT */
+			} else if (StringUtils.equals(sheet_name, config.odmEventTableName)) {
+				if ("ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Type".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Category".equals(column_name)) {
+					sheet.setColumnWidth(i, 10 * COEFFICIENT_WIDTH);
+				} else if ("Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				}
+			/* ODM - EVENTxFORM */
+			} else if (StringUtils.equals(sheet_name, config.odmEventFormTableName)) {
+				if ("Event Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Form Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("CollectionExceptionCondition".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				}
+			/* ODM - FORM */
+			} else if (StringUtils.equals(sheet_name, config.odmFormTableName)) {
+				if ("ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("xml:lang".equals(column_name)) {
+					sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				} else if ("PdfFileName".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				}
+			/* ODM - FIELD */
+			} else if (StringUtils.equals(sheet_name, config.odmFieldTableName)) {
+				if ("Form Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Item Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("Level".equals(column_name)) {
+					sheet.setColumnWidth(i, 5 * COEFFICIENT_WIDTH);
+				} else if ("Question".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("Question xml:lang".equals(column_name)) {
+					sheet.setColumnWidth(i, 14 * COEFFICIENT_WIDTH);
+				} else if ("ControlType".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("IsLog".equals(column_name)) {
+					sheet.setColumnWidth(i, 5 * COEFFICIENT_WIDTH);
+				} else if ("Derived From".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Section Label".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("SAS Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("Description xml:lang".equals(column_name)) {
+					sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				} else if ("Unit Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 15 * COEFFICIENT_WIDTH);
+				} else if ("Codelist".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("RangeCheck".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("SoftHard".equals(column_name)) {
+					sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				} else if ("RangeCheck Error Message".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("Method ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Derivation".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+				} else if ("Condition ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("CollectionExceptionCondition".equals(column_name)) {
+					sheet.setColumnWidth(i, 30 * COEFFICIENT_WIDTH);
+			}
+			/* ODM - CONDITION */
+			} else if (StringUtils.equals(sheet_name, config.odmMethodTableName)) {
+				if ("Condition ID".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Condition Name".equals(column_name)) {
+					sheet.setColumnWidth(i, 20 * COEFFICIENT_WIDTH);
+				} else if ("Description".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				} else if ("xml:lang".equals(column_name)) {
+					sheet.setColumnWidth(i, 7 * COEFFICIENT_WIDTH);
+				}
+			/* ODM - EDC_KEYS */
+			} else if ("EDC_KEYS".equals(sheet_name)) {
+				if ("ODM Key".equals(column_name)) {
+					sheet.setColumnWidth(i, 24 * COEFFICIENT_WIDTH);
+				} else if ("EDC Ky".equals(column_name)) {
+					sheet.setColumnWidth(i, 40 * COEFFICIENT_WIDTH);
+				}
+			} else {
+				if (column.getCell(i).toString().equals("Message")) {
 					sheet.setColumnWidth(i, 12000);
-			  } else if (column.getCell(i).toString().equals("Additional Rules")) {
+				} else if (column.getCell(i).toString().equals("Additional Rules")) {
 					sheet.setColumnWidth(i, 12000);
+				}
 			}
 		}
 		return sheet;
 	}
-
-
 }
