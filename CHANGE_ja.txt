@@ -1,0 +1,192 @@
+﻿========================================
+tsClinical Metadata Desktop Tools v1.1.1
+    Released on: February 13, 2023
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) 以下の不具合が修正されました。
+    - Convert from Excel to Define-XMLメニューで、次の列が必須になってい
+      ましたが、下位互換性の観点から必須除外としました。
+      - DATASETシートのDescription列
+      - VARIABLEシートのSASFieldName列
+      - VALUEシートのSASFieldName列
+      - CODELISTシートのSASFormatName, Decode, User Note 1およびUser Note 2列 
+      - DICTIONARYシートのUser Note 1およびUser Note 2列 
+    - Convert from Excel to Define-XMLメニューで、AutoSuppテンプレートを
+      使用した場合に、Is SUPP=Yesの変数にRepeat Nを記入したときに、N無し
+      のQNAMは出力されないようにしました。
+    - Convert from Excel to Define-XMLおよびConvert from Define-XML to
+      Excelメニューで、処理完了後もツールがExcelファイルを解放しない問題
+      を修正しました。
+    - Convert from Excel to Define-XMLメニューで、Excelセルの表示形式が
+      「文字列」でない場合、数値データに".0"が付いてDefine-XMLに出力され
+      問題を修正しました。
+(2) Security Advisory GHSA-v99q-c7rh-fxpgに伴う修正を行いました。詳細は
+    GitHubの[Security] - [Advisories]を参照してください。
+
+========================================
+tsClinical Metadata Desktop Tools v1.1.0
+    Released on: November 1, 2022
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) Convert from Excel to Define-XMLおよびConvert from Define-XML to
+    Excel機能の書き直しを行い、以下の機能を追加・更新しました。
+    - Define-XML 2.0.0および2.1.nがサポートされるようになりました。
+    - Analysis Results Metadata (ARM)のExcelへのインポートがサポートされます。
+    - Excel列名の読取り時に大文字／小文字および空白が無視されるようになりました。
+      （例: "DataType", "Data Type", "Data type"は全て正しい列名です。）
+    - METHODおよびCOMMENTを各シートに記載する以外に、別シートに記載する方法もサポートされます。
+    - Excelの入力不整合がDefine-XML作成時にWarningとして報告されるようになりました。
+    - No Data列がDefine-XML 2.0.0および2.1.nでサポートされます。2.0.0では、
+      No DataがYesであるDataset, Variable, VLMは出力されません。
+    - 繰返し変数（TSVALn, COVALn, RACEn等）を複製できるRepeat N列がサポートされます。
+      また、Length列に複数の値を記入する事で、複製された変数に異なるLengthを
+      指定することができます。
+    - ExcelとDefine-XML間のマッピングが更新されました。詳細は
+　　　　　　Mapping_Design_Define.xlsxをご覧ください。
+(2) Define-XMLをスタイルシートを使用してHTMLファイルに変換する
+    Convert from XML to HTMLメニューが追加されました。
+(3) Architect CRFからCRF Specへのマッピングが改善されました。詳細は
+    Mapping_Design_Architect.xlsxをご覧ください。
+(4) 以下の不具合が修正されました。
+    - Create CRF Spec from Datasetsメニューで、Architect CRFに空白セルが
+      含まれる場合にエラーになる場合がある不具合を修正しました。
+    - Create CRF Spec from Datasetsメニューで、１つの列に複数の日付形式の値が
+      含まれる場合にエラーになる不具合を修正しました。
+    - Create CRF Spec from DatasetsおよびCreate eDT Spec from Datasets
+      メニューで、Qualifierに(None)が選択された場合に'('が区切り文字として使用される
+      不具合を修正しました。今後、(None)が選択された場合はバックスペース(\b)が区切り文字として
+      使用されます。
+    - Convert from Excel to ODM-XMLメニューで、自動的に作成されるItemGroupDef
+      のRepeating属性には常にNoが設定されていました。FormDefのRepeating属性
+      と同じ値が設定されるよう修正しました。
+    - Convert from Excel to ODM-XMLメニューで、FormRef要素のOrderNumber属性
+      がODM文書全体でユニークな値になるように変更されました。これは、tsClinical for
+      SDTM Automationが作成するAnnotated　CRFの目次が、予期しない順序になる
+      不具合の回避策です。
+    - Create CRF Spec from Datasetsメニューで、FIELDシートのソートアルゴリズムに
+      起因してエラーが発生する場合がある不具合を修正しました。
+    - Create CRF Spec from Datasetsメニューで、Datasets Text Files欄
+      が空の場合に、画面に入力したパラメタがSTUDYシートに反映されない不具合を修正しました。
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.4
+    Released on: October 13, 2021
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) バイナリ配布版にはAdoptOpenJDKの後継であるEclipse Temurinを
+    バンドルするようにしました。
+(2) Convert from Excel to ODM-XMLメニューで作成されるODM-XML
+　　　　に以下のベンダー拡張を含めるようにしました。
+    - ddedcp:SourceDataFrom属性（ODM要素）:
+    　　EDCシステムの名前を表す
+    - ddedcp:InputFormatTyp属性（ItemDef要素）:
+    　　項目の画面コントロールを表す
+    ベンダー拡張のXML schemaはGitHubの以下のディレクトリに格納されています:
+      /tsc-desktop/src/main/resources/schema/soft/fujitsu-ddedcp-1.0
+(3) ODMおよびArchitect CRFのマッピングルールが更新されました。詳細はdocsディレクトリの
+    Mapping_Design_ODM.xlsxおよびMapping_Design_Architect.xlsx
+    を参照してください。
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.3
+    Released on: February 21, 2021
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) バイナリ配布版にはOpenJDKに代わってAdoptOpenJDKをバンドルするようにしました。
+(2) Convert from Excel to Define-XMLメニューで、SDTM(AutoSUPP)形式の
+    Excelファイルを使用した時、SUPP--データセットのVariableの自動生成アルゴリズムを
+    以下のように変更しました。
+    - RDOMAINのOriginを"Assigned"に変更
+    - QVALのOriginを常に出力しないように変更
+    - QVALのDataTypeを、Value-levelのData Typeが全て同じならその値を、
+      異なるなら"text"を出力するよう変更
+    - QVALのLengthが、Data Typeが"integer"または"float"以外の場合は
+      出力されないよう修正
+    - QVALのSignificantDigitsが、Data Typeが"float"の場合に出力
+      されない問題を修正
+    - QEVALのLengthを、ExcelのEvaluator列の値から導出するよう変更
+(3) Convert from Excel to ODM-XML機能で使用されるoidModeのデフォルト
+    設定値を"EXACT"に変更しました。
+(4) Convert from ODM-XML to Excel機能で作成されるExcelファイルの
+    CONDITIONシートの列名"Formal Expression Context"が誤っていたため
+    修正しました。
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.2
+    Released on: October 25, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) Create CRF Spec from DatasetsおよびCreate eDT Spec from Datasets
+    メニューのテキストファイル読込み機能をOpencsv 5.2.1に変更しました。
+(2) Create CRF Spec from Datasetsメニューで、Arhchitect CRFが指定された場合に
+    ControlType=CheckBoxである項目に0,1のCodelistを自動作成するようにしました。
+(3) Create CRF Spec from Datasetsメニューで、EDC_KEYSの項目(Common Variables)
+    にIsLog=TRUEを自動設定するようにしました。
+(4) Create CRF Spec from Datasetsメニューで、Arhchitect CRFが指定された場合に
+    項目名が_STDのCodelistが空になる不具合を修正しました。
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.1
+    Released on: September 28, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) Convert from Excel to Define-XMLメニューで、"Include Result Metadata"
+　　　　のチェック状態がツール終了時に正しく保存されない不具合を修正しました。
+
+========================================
+tsClinical Metadata Desktop Tools v1.0.0
+    Released on: June 26, 2020
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) OpenJDKがソフトウェアに同梱されるため、PCにJavaがインストールされていなくても
+    ソフトウェアを利用できるようになりました。
+(2) GUIデザインを大きく改良しました。
+(3) Create CRF Spec from Datasetsメニューを新規追加しました。
+(4) Create eDT Spec from Datasetsメニューを新規追加しました。
+(5) Convert from Excel to ODM-XML機能で、FIELDシートの各フォームに
+    ItemGroupの定義が含まれていない場合、自動的に作成するItemGroupDefのIDを
+        「FormOID」
+    に変更しました。これまでは「FormOID + "_DEFAULT_n"（nは連番）」でした。
+(6) Convert from Excel to ODM-XML機能で、同じItemOIDのItemDef
+    要素が作成される不具合を修正しました。
+
+======================================
+tsClinical Define.xml Generator v1.4.2
+    Released on: December 3, 2019
+======================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) 1つのVLMに複数のWhereClauseが定義されている場合、VALUEシートのValue部
+    （VALUEシートのWhereClause部を除いた部分）の記載方法について、以下の2通りを
+    サポートするようにしました。
+    i  各VLMのValue部の先頭行にのみ記入する（従前の方法）
+    ii 各VLMのValue部の全ての行に同じ内容を記入する
+(2) Generate ODM機能で、FIELDシートの各フォームにItemGroupの定義が含まれて
+    いない場合、自動的に作成するItemGroupDefのIDを
+        「FormOID + "_DEFAULT_n"（nは連番）」
+    に変更しました。これまでは"DEFAULT_n"でした。
+
+======================================
+tsClinical Define.xml Generator v1.4.1
+    Released on: October 24, 2017
+======================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) Import Define.xml時にVALUE_DELIMITERの設定が反映されない不具合を
+    修正しました。v1.4.0ではインポート時に常に「,」が区切り文字として設定されていました。
