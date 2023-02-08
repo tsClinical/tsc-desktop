@@ -40,6 +40,7 @@ import org.apache.log4j.PatternLayout;
 import org.xml.sax.SAXException;
 
 import com.fujitsu.tsc.desktop.util.Config;
+import com.fujitsu.tsc.desktop.util.Utils;
 
 public class XmlToHtmlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
@@ -354,6 +355,7 @@ public class XmlToHtmlPanel extends JPanel implements ActionListener {
 						try {
 							logger.info("Converting XML to HTML...");
 							TransformerFactory factory = TransformerFactory.newInstance();
+							Utils.setTransformerFactorySecureFeatures(factory);
 							Transformer transformer = factory.newTransformer(new StreamSource(xslLocationTF.getText()));
 							transformer.transform(new StreamSource(xmlLocationTF.getText()), new StreamResult(outputLocationTF.getText()));
 							/* Display the output folder on the xmlToHtmlResultPanel. */

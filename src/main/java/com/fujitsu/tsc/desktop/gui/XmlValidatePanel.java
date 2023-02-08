@@ -25,6 +25,8 @@ import javax.swing.LayoutStyle;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -35,6 +37,7 @@ import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import com.fujitsu.tsc.desktop.util.Config;
+import com.fujitsu.tsc.desktop.util.Utils;
 
 public class XmlValidatePanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
@@ -293,18 +296,23 @@ public class XmlValidatePanel extends JPanel implements ActionListener {
 					public void run() {
 						XmlValidationAppender appender = new XmlValidationAppender(parent.xmlValidateResultPanel.vResultTable);
 						appender.clear();
-						String language = XMLConstants.W3C_XML_SCHEMA_NS_URI;
-						SchemaFactory factory = SchemaFactory.newInstance(language);
-						XmlValidationHandler handler = new XmlValidationHandler(appender);
 						try {
+							String language = XMLConstants.W3C_XML_SCHEMA_NS_URI;
+							SchemaFactory factory = SchemaFactory.newInstance(language);
+							Utils.setSchemaFactorySecureFeatures(factory);
+							XmlValidationHandler handler = new XmlValidationHandler(appender);
 							Schema schema = factory.newSchema(new File(schemaLocationTF.getText()));
-							Validator validator = schema.newValidator();
-							validator.setErrorHandler(handler);
-							validator.validate(new StreamSource(new File(parent.xmlValidatePanel.xmlLocationTF.getText())));
+							SAXParserFactory sax_factory = SAXParserFactory.newInstance();
+							sax_factory.setSchema(schema);
+							sax_factory.setNamespaceAware(true);
+							sax_factory.setValidating(false);
+							Utils.setSaxParserFactorySecureFeatures(sax_factory);
+							SAXParser parser = sax_factory.newSAXParser();
+							parser.parse(new File(parent.xmlValidatePanel.xmlLocationTF.getText()), handler);
 				    		if (handler.getErrorCount() == 0) {
 				    			appender.writeSuccessMessage();
 				    		}
-						} catch (SAXException | IOException ex) {
+						} catch (SAXException | IOException | ParserConfigurationException ex) {
 				    		logger.error(ex.getMessage());
 		                    appender.writeErrorMessage(ex.getMessage());
 						}

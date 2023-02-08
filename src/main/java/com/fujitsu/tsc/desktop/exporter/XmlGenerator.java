@@ -329,6 +329,8 @@ public class XmlGenerator {
 	public static void main(String[] args) throws InvalidFormatException {
 		PropertyConfigurator.configure("./properties/log4j.properties");
 		String[] strConfig = null;
+		logger.info("Command Line Interface (CLI) is not supported.");
+		System.exit(-1);
 
 		try {
 			/*

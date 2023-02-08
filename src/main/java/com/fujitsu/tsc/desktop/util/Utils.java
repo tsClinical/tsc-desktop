@@ -4,8 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.validation.SchemaFactory;
+
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.xml.sax.SAXNotRecognizedException;
+import org.xml.sax.SAXNotSupportedException;
 
 import com.fujitsu.tsc.desktop.exporter.InvalidOidSyntaxException;
 import com.fujitsu.tsc.desktop.importer.models.DefineDatasetModel;
@@ -117,5 +126,44 @@ public class Utils {
 			}
 		}
 		return rtn;
+	}
+	
+	/**
+	 * Set secure features to SAXParserFactory based on OWASP recommendation
+	 * @param sax_factory
+	 * @throws SAXNotRecognizedException
+	 * @throws SAXNotSupportedException
+	 * @throws ParserConfigurationException
+	 */
+	public static void setSaxParserFactorySecureFeatures(SAXParserFactory sax_factory) throws SAXNotRecognizedException, SAXNotSupportedException, ParserConfigurationException {
+		sax_factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		sax_factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		sax_factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		sax_factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		sax_factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		sax_factory.setXIncludeAware(false);
+	}
+	
+	/**
+	 * Set secure features to TransformerFactory based on OWASP recommendation
+	 * @param factory
+	 * @throws TransformerConfigurationException
+	 */
+	public static void setTransformerFactorySecureFeatures(TransformerFactory factory) throws TransformerConfigurationException {
+		factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
+	}
+	
+	/**
+	 * Set secure features to SchemaFactory based on OWASP recommendation
+	 * @param factory
+	 * @throws SAXNotSupportedException 
+	 * @throws SAXNotRecognizedException 
+	 */
+	public static void setSchemaFactorySecureFeatures(SchemaFactory factory) throws SAXNotRecognizedException, SAXNotSupportedException {
+		factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+		factory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+		factory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file");
 	}
 }

@@ -418,6 +418,7 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 										logger.error(error_log_error.print());
 									}
 									logger.error("Processing suspended.");
+									workbook.close();
 									return;
 								}
 							}
@@ -435,6 +436,7 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 							parent.defineExportResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
 							logger.removeAppender(epAppender);
+							workbook.close();
 						} catch (Exception ex) {
 							logger.error(ExceptionUtils.getStackTrace(ex));
 							logger.removeAppender(epAppender);

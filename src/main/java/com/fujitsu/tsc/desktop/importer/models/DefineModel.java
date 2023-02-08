@@ -269,6 +269,10 @@ public class DefineModel {
 		this.map_define_variable.put(key, variable);
 	}
 	
+	public void remove(DefineVariablePk key) {
+		this.map_define_variable.remove(key);
+	}
+	
 	public List<DefineVariableModel> getVariableByOid(String item_oid) {
 		List<DefineVariableModel> rtn = new ArrayList<>();
 		Set<Entry<DefineVariablePk, DefineVariableModel>> entries = this.map_define_variable.entrySet();
@@ -673,6 +677,13 @@ public class DefineModel {
 					DefineVariableModel qval = this.get(new DefineVariablePk(supp_dataset.dataset_name, DefineVariableModel.createOid(supp_dataset.dataset_name, "QVAL")));
 					qval.valuelist_oid = DefineVariableModel.createValueListOid(supp_dataset.dataset_name, "QVAL");
 				}
+			}
+		}
+		/* Remove original Is SUPP variable if Repeat N is not empty */
+		for (int i = 0; i < variables.size(); i++) {
+			DefineVariableModel variable = variables.get(i);
+			if (is_auto_supp && variable.is_supp == YorN.Yes && variable.repeat_n > 0) {
+				this.remove(variable.getKey());
 			}
 		}
 	}
