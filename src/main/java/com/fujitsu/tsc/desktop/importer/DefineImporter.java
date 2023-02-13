@@ -89,6 +89,7 @@ public class DefineImporter {
 	private List<ErrorInfo> parse(Type type) throws SAXException, ParserConfigurationException, IOException {
 
 		SchemaFactory sch_factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		Utils.setSchemaFactorySecureFeatures(sch_factory);
 		SAXParserFactory sax_factory = SAXParserFactory.newInstance();
 		Schema schema = null;
 		if (type == Type.HARD) {
@@ -104,6 +105,7 @@ public class DefineImporter {
 		sax_factory.setSchema(schema);
 		sax_factory.setNamespaceAware(true);
 		sax_factory.setValidating(false);
+		Utils.setSaxParserFactorySecureFeatures(sax_factory);
 		SAXParser parser = sax_factory.newSAXParser();
 		
 		if (type == Type.HARD) {
@@ -125,7 +127,7 @@ public class DefineImporter {
 		this.define = define;
 	}
 	
-	public void generateExcel() throws IOException {
+	public XSSFWorkbook generateWorkbook() throws IOException {
 		XSSFWorkbook wb = new XSSFWorkbook();
 		excelStyle = new ExcelStyle(wb, this.config);
 
@@ -156,10 +158,12 @@ public class DefineImporter {
 			writeMethodSheet(wb, define);
 			writeCommentSheet(wb, define);
 		}
+		
+		return wb;
 
-		FileOutputStream out = new FileOutputStream((String)config.d2eOutputLocation);
-		wb.write(out);
-		out.close();
+//		FileOutputStream out = new FileOutputStream((String)config.d2eOutputLocation);
+//		wb.write(out);
+//		out.close();
 	}
 
 	public void writeStudySheet(XSSFWorkbook wb, DefineModel define) {
@@ -455,7 +459,7 @@ public class DefineImporter {
 							value.alias_name,
 							value.user_note1,
 							value.user_note2,
-							wc.group_id,
+							(wc == null ? "" : wc.group_id),
 							(wc_condition == null ? "" : wc_condition.dataset_name),
 							(wc_condition == null ? "" : wc_condition.variable_name),
 							(wc_condition == null ? "" : wc_condition.operator),
@@ -490,7 +494,7 @@ public class DefineImporter {
 			List<DefineARMResultPk> arm_result_pks = (arm_display.arm_result_pks.isEmpty() ? new ArrayList<>() : arm_display.arm_result_pks);
 			for (int i = 0; i == 0 || i < arm_result_pks.size(); i++) {
 				DefineARMResultModel arm_result = (arm_result_pks.isEmpty() ? null : define.get(arm_result_pks.get(i)));
-				DefineCommentModel dataset_comment = define.get(new DefineCommentPk(arm_result.dataset_comment_oid));
+				DefineCommentModel dataset_comment = (arm_result == null ? null : define.get(new DefineCommentPk(arm_result.dataset_comment_oid)));
 				row = sheet.createRow(row_num++);
 				String[] data = { arm_display.display_name,
 						arm_display.display_desc,

@@ -25,6 +25,7 @@ import com.fujitsu.tsc.desktop.importer.models.OdmModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmStudyModel;
 import com.fujitsu.tsc.desktop.importer.models.OdmUnitModel;
 import com.fujitsu.tsc.desktop.util.ExcelStyle;
+import com.fujitsu.tsc.desktop.util.Utils;
 import com.fujitsu.tsc.desktop.util.Config;
 import com.fujitsu.tsc.desktop.util.ErrorInfo;
 import com.fujitsu.tsc.desktop.validator.DefaultValidationHandler;
@@ -75,11 +76,13 @@ public class OdmImporter {
 	private List<ErrorInfo> parse(Type type) throws SAXException, ParserConfigurationException, IOException {
 
 		SchemaFactory sch_factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+		Utils.setSchemaFactorySecureFeatures(sch_factory);
 		SAXParserFactory sax_factory = null;
 		Schema schema = null;
 		
 		if (type == Type.HARD) {
-			sax_factory = SAXParserFactory.newInstance("org.apache.xerces.jaxp.SAXParserFactoryImpl", null);
+			sax_factory = SAXParserFactory.newInstance();
+//			sax_factory = SAXParserFactory.newInstance("org.apache.xerces.jaxp.SAXParserFactoryImpl", null);
 //			schema = sch_factory.newSchema(new File("./schema/hard/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
 			schema = sch_factory.newSchema(this.getClass().getClassLoader().getResource("schema/hard/cdisc-odm-1.3.2/ODM1-3-2.xsd"));
 		} else {
@@ -92,6 +95,7 @@ public class OdmImporter {
 		sax_factory.setSchema(schema);
 		sax_factory.setNamespaceAware(true);
 		sax_factory.setValidating(false);
+		Utils.setSaxParserFactorySecureFeatures(sax_factory);
 		SAXParser parser = sax_factory.newSAXParser();
 		
 		if (type == Type.HARD) {

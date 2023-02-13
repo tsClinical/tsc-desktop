@@ -4,7 +4,7 @@ tags: []
 ---
 
 # tsClinical Metadata Desktop Tools
-Version 1.1.0
+Version 1.1.1
 
 ### Table of Contents
 [1 License](#1-license)  
@@ -35,12 +35,12 @@ tsClinical Metadata Desktop Tools is a tool that transforms clinical study metad
 [\*4] Functionality regarding Architect CRF is not available on GitHub.
 
 ### 3 System Requirements of Binary Distribution
-* Microsoft Windows 8.1, 10 and 11
+* Microsoft Windows 10 and 11
 * Microsoft Excel 2013 and later (the file extension must be .xlsx)
 
 ### 4 Dependencies
 The binary distribution contains the following resources. AdoptOpenJDK is avaiable under the GPLv2 + Classpath Exception license. All the other resources are available under the Apache License, Version 2.0.
-* AdoptOpenJDK 11.0.16
+* Eclipse Temurin 11.0.18
 * Material Design Icons
 * commons-beanutils-1.9.4.jar
 * commons-codec-1.10.jar
@@ -57,7 +57,6 @@ The binary distribution contains the following resources. AdoptOpenJDK is avaiab
 * poi-ooxml-3.17.jar
 * poi-ooxml-schemas-3.17.jar
 * stax-api-1.0.1.jar
-* xercesImpl-2.9.0.jar
 * xml-apis-1.3.04.jar
 * xmlbeans-2.6.0.jar
 
@@ -71,5 +70,5 @@ Download the binary distribution (.zip file) from the [Download](https://md-eval
 See `USERS-GUIDE` in the `docs` directory of this software.
 
 ---
-Copyright (c) 2020-2022 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2023 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.

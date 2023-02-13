@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.fujitsu.tsc.desktop.importer.DefineImporter;
 import com.fujitsu.tsc.desktop.util.Config;
@@ -392,7 +394,11 @@ public class DefineImportPanel extends JPanel implements ActionListener{
 									errors = defineImporter.validateSoft();
 								}
 							}
-							defineImporter.generateExcel();
+							XSSFWorkbook wb = defineImporter.generateWorkbook();
+							FileOutputStream out = new FileOutputStream((String)config.d2eOutputLocation);
+							wb.write(out);
+							out.close();
+							wb.close();
 							if (!errors.isEmpty()) {
 								for (ErrorInfo error : errors) {
 									appender.writeNext(error);

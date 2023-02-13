@@ -529,9 +529,10 @@ public class OdmXmlReader extends DefaultHandler {
 				try {
 					if (!StringUtils.isEmpty(attr.getValue("Rank")))
 						codelist.rank = Integer.parseInt(attr.getValue("Rank"));
-					if (!StringUtils.isEmpty(attr.getValue("OrderNumber")))
+					if (!StringUtils.isEmpty(attr.getValue("OrderNumber"))) {
 						codelist.order_number = Integer.parseInt(attr.getValue("OrderNumber"));
-						codelist.ordinal = codelist.order_number;  
+						codelist.ordinal = codelist.order_number; 
+					}
 				} catch (Exception ex) {
 					codelist.ordinal = this.cached_codelist_ordinal++;
 					OdmImportError error = new OdmImportError(new OdmCodelistPk(codelist.codelist, codelist.user_code));

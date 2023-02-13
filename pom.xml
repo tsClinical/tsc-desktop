@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.fujitsu.tsc.desktop</groupId>
   <artifactId>tsc-desktop</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>tsClinical Metadata Desktop Tools</name>
   <url>https://github.com/tsClinical/tsc-desktop</url>
@@ -18,7 +18,7 @@
       </activation>
       <properties>
         <jdkhome>C:/Program Files/Java/jdk1.8.0_192</jdkhome>
-        <jrehome>C:/Program Files/Eclipse Adoptium/jdk-11.0.16.101-hotspot</jrehome>
+        <jrehome>C:/Program Files/Eclipse Adoptium/jdk-11.0.18+10</jrehome>
       </properties>
     </profile>
   </profiles>
@@ -133,11 +133,6 @@
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
-    </dependency>
-    <dependency>
-      <groupId>xerces</groupId>
-      <artifactId>xercesImpl</artifactId>
-      <version>2.9.0</version>
     </dependency>
     <dependency>
       <groupId>com.opencsv</groupId>

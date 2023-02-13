@@ -4,7 +4,7 @@ tags: []
 ---
 
 # tsClinical Metadata Desktop Tools
-Version 1.1.0
+Version 1.1.1
 
 ### 1. ライセンス
 
@@ -26,12 +26,12 @@ tsClinical Metadata Desktop Toolsは、臨床試験のメタデータをExcelか
 [\*4] 本機能はGitHubに公開していません。
 
 ### 3. バイナリ配布版の動作環境
-* Microsoft Windows 8.1, 10および11
+* Microsoft Windows 10および11
 * Microsoft Excel 2013以降（拡張子が.xlsxのファイルのみ）
 
 ### 4. 依存関係
 バイナリ配布版には以下のリソースが含まれています。Eclipse TemurinはGPLv2 + Classpath Exceptionライセンスに従います。その他のリソースはApache License, Version 2.0に従います。
-* Eclipse Temurin 11.0.16
+* Eclipse Temurin 11.0.18
 * Material Design Icons
 * commons-beanutils-1.9.4.jar
 * commons-codec-1.10.jar
@@ -48,7 +48,6 @@ tsClinical Metadata Desktop Toolsは、臨床試験のメタデータをExcelか
 * poi-ooxml-3.17.jar
 * poi-ooxml-schemas-3.17.jar
 * stax-api-1.0.1.jar
-* xercesImpl-2.9.0.jar
 * xml-apis-1.3.04.jar
 * xmlbeans-2.6.0.jar
 
@@ -56,13 +55,11 @@ tsClinical Metadata Desktop Toolsは、臨床試験のメタデータをExcelか
 バイナリ配布版に含まれる商標およびロゴの一切の権利は富士通株式会社に帰属します。
 
 ### 6. バイナリ配布版のダウンロードおよび実行
-バイナリ配布版(.zipファイル)を[Download](https://md-eval.tsclinical.global.fujitsu.com/cdisc/public/dl)ページからダウンロードし、解凍後`tsc-desktop.bat`を実行します。
-
-バイナリ配布版をダウンロードし`tsc-desktop.bat`または`tsc-desktop.exe`を実行します。EXEファイルは、ツールの実行時にWindows 10以降でMicrosoft SmartScreenの警告が表示されないよう、デジタル署名されています。
+バイナリ配布版(.zipファイル)を[Download](https://md-eval.tsclinical.global.fujitsu.com/cdisc/public/dl)ページからダウンロードし、解凍後`tsc-desktop.bat`を実行します。または`tsc-desktop.exe`を実行します。EXEファイルは、ツールの実行時にWindows 10以降でMicrosoft SmartScreenの警告が表示されないよう、デジタル署名されています。
 
 ### 7. 使用方法
 本ソフトウェアの`docs`ディレクトリの`USERS-GUIDE`を参照してください。
 
 ---
-Copyright (c) 2020-2022 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2023 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.

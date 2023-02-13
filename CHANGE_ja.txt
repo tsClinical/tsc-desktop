@@ -1,4 +1,31 @@
 ﻿========================================
+tsClinical Metadata Desktop Tools v1.1.1
+    Released on: February 13, 2023
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) 以下の不具合が修正されました。
+    - Convert from Excel to Define-XMLメニューで、次の列が必須になってい
+      ましたが、下位互換性の観点から必須除外としました。
+      - DATASETシートのDescription列
+      - VARIABLEシートのSASFieldName列
+      - VALUEシートのSASFieldName列
+      - CODELISTシートのSASFormatName, Decode, User Note 1およびUser Note 2列 
+      - DICTIONARYシートのUser Note 1およびUser Note 2列 
+    - Convert from Excel to Define-XMLメニューで、AutoSuppテンプレートを
+      使用した場合に、Is SUPP=Yesの変数にRepeat Nを記入したときに、N無し
+      のQNAMは出力されないようにしました。
+    - Convert from Excel to Define-XMLおよびConvert from Define-XML to
+      Excelメニューで、処理完了後もツールがExcelファイルを解放しない問題
+      を修正しました。
+    - Convert from Excel to Define-XMLメニューで、Excelセルの表示形式が
+      「文字列」でない場合、数値データに".0"が付いてDefine-XMLに出力され
+      問題を修正しました。
+(2) Security Advisory GHSA-v99q-c7rh-fxpgに伴う修正を行いました。詳細は
+    GitHubの[Security] - [Advisories]を参照してください。
+
+========================================
 tsClinical Metadata Desktop Tools v1.1.0
     Released on: November 1, 2022
 ========================================

@@ -168,7 +168,7 @@ public class DefineImportResultPanel extends JPanel {
         iResultTable.setCellSelectionEnabled(true);
         iResultTable.setShowVerticalLines(false);
 
-//		iResultMessage.setFont(defaultFont);	//Commented out to avoid non-English letters are collapsed.
+		iResultMessage.setFont(defaultFont);
         iResultMessage.setText("The following validation errors have been found.");
 //        this.setBorder(BorderFactory.createEtchedBorder());
 

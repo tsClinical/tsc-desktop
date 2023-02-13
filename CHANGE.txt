@@ -1,4 +1,32 @@
 ﻿========================================
+tsClinical Metadata Desktop Tools v1.1.1
+    Released on: February 3, 2023
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) The following bugs have been fixed:
+    - The following columns were configured as required in the [Convert
+      from Excel to Define-XML] menu, but have been changed to optional
+      for backward compatibility.
+      - Description in DATASET
+      - SASFieldName in VARIABLE
+      - SASFieldName in VALUE
+      - SASFormatName, Decode, User Note 1 and User Note 2 in CODELIST
+      - User Note 1 and User Note 2 in DICTIONARY
+    - The [Convert from Excel to Define-XML] menu has been fixed to create
+      QNAM for those with N (e.g. VAR1, VAR2, VAR3 ...) only when
+      Repeat N is entered for a non-standard variable.
+    - The issue that the [Convert from Excel to Define-XML] / [Convert
+      from Define-XML to Excel] menu keeps opening an Excel file after
+      the conversion was completed has been fixed.
+    - The [Convert from Excel to Define-XML] menu appended ".0" to an
+      integer value in Define-XML when a Excel cell format was other
+      than "Text". The issue has been fixed.
+(2) A fix to Security Advisory GHSA-v99q-c7rh-fxpg has been implemented.
+    See the [Security] - [Advisories] menu on GitHub for details.
+
+========================================
 tsClinical Metadata Desktop Tools v1.1.0
     Released on: November 1, 2022
 ========================================

@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -628,7 +629,7 @@ public class SdtmAdamSpecImporter {
 		HorizontalExcelSheet excel_sheet = new HorizontalExcelSheet(sheet_name, true, new ExcelColumn[] {
 				new ExcelColumn("Domain", false), //
 				new ExcelColumn("Dataset Name", true), //
-				new ExcelColumn("Description", true), //
+				new ExcelColumn("Description", false), //
 				new ExcelColumn("TranslatedText", false), //For backward compatibility
 				new ExcelColumn("No Data", false), //
 				new ExcelColumn("SASDatasetName", false), //
@@ -823,7 +824,7 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("Codelist Code", true), //
 				new ExcelColumn("Codelist Label", true), //
 				new ExcelColumn("DataType", true), //
-				new ExcelColumn("SASFormatName", true), //
+				new ExcelColumn("SASFormatName", false), //
 				new ExcelColumn("Standard", false), //
 				new ExcelColumn("CommentOID", false), //
 				new ExcelColumn("Comment", false), //
@@ -840,14 +841,14 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("Rank", true), //
 				new ExcelColumn("ExtendedValue", true), //
 				new ExcelColumn("Submission Value", true), //
-				new ExcelColumn("Decode", true), //
-				new ExcelColumn("Translated Text", false), //
+				new ExcelColumn("Decode", false), //
+				new ExcelColumn("Translated Text", false), //For backward compatibility
 				new ExcelColumn("Decode Language", false), //
 				new ExcelColumn("xml:lang", false), //For backward compatibility
 				new ExcelColumn("Alias Context", false), //
 				new ExcelColumn("Alias Name", false), //
-				new ExcelColumn("User Note 1", true), //
-				new ExcelColumn("User Note 2", true) //
+				new ExcelColumn("User Note 1", false), //
+				new ExcelColumn("User Note 2", false) //
 		});
 		List<ErrorLog> errors = excel_sheet.validate();
 		if (!errors.isEmpty()) {
@@ -1070,7 +1071,7 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("DataType", true), //
 				new ExcelColumn("Length", true), //
 				new ExcelColumn("SignificantDigits", true), //
-				new ExcelColumn("SASFieldName", true), //
+				new ExcelColumn("SASFieldName", false), //
 				new ExcelColumn("DisplayFormat", true), //
 				new ExcelColumn("Codelist", true), //
 				new ExcelColumn("Origin", true), //
@@ -1090,7 +1091,7 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("CommentOID", false), //
 				new ExcelColumn("Comment", false), //
 				new ExcelColumn("Language", false), //
-				new ExcelColumn("xml:lang", false), //
+				new ExcelColumn("xml:lang", false), //For backward compatibility
 				new ExcelColumn("DocumentID", false), //
 				new ExcelColumn("Document Page Type", false), //
 				new ExcelColumn("Document Page Reference", false), //
@@ -1374,7 +1375,7 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("DataType", true), //
 				new ExcelColumn("Length", true), //
 				new ExcelColumn("SignificantDigits", true), //
-				new ExcelColumn("SASFieldName", true), //
+				new ExcelColumn("SASFieldName", false), //
 				new ExcelColumn("DisplayFormat", true), //
 				new ExcelColumn("Codelist", true), //
 				new ExcelColumn("Origin", true), //
@@ -1393,7 +1394,7 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("CommentOID", false), //
 				new ExcelColumn("Comment", false), //
 				new ExcelColumn("Language", false), //
-				new ExcelColumn("xml:lang", false), //
+				new ExcelColumn("xml:lang", false), //For backward compatibility
 				new ExcelColumn("DocumentID", false), //
 				new ExcelColumn("Document Page Type", false), //
 				new ExcelColumn("Document Page Reference", false), //
@@ -1419,7 +1420,7 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("WhereClause CommentOID", false), //
 				new ExcelColumn("WhereClause Comment", false), //
 				new ExcelColumn("WhereClause Language", false), //
-				new ExcelColumn("W xml:lang",false) //
+				new ExcelColumn("W xml:lang",false) //For backward compatibility
 		});
 		List<ErrorLog> errors = excel_sheet.validate();
 		if (!errors.isEmpty()) {
@@ -1777,8 +1778,8 @@ public class SdtmAdamSpecImporter {
 				new ExcelColumn("Document First Page", false), //
 				new ExcelColumn("Document Last Page", false), //
 				new ExcelColumn("Document Page Title", false), //
-				new ExcelColumn("User Note 1", true), //
-				new ExcelColumn("User Note 2", true) //
+				new ExcelColumn("User Note 1", false), //
+				new ExcelColumn("User Note 2", false) //
 		});
 		List<ErrorLog> errors = excel_sheet.validate();
 		if (!errors.isEmpty()) {
@@ -2677,24 +2678,27 @@ public class SdtmAdamSpecImporter {
 			if (cell == null) {
 				return "";
 			}
-			CellType cell_type = cell.getCellTypeEnum();
-			switch(cell_type) {
-			case STRING:
-				/* All cells in the SDTM/ADaM Spec is expected to be formatted as String. */
-				return cell.getStringCellValue();
-			case BOOLEAN:
-				return String.valueOf(cell.getBooleanCellValue());
-			case FORMULA:
-				return cell.getCellFormula();
-			case NUMERIC:
-				/* 0 will be returned for a blank cell. */
-				return String.valueOf(cell.getNumericCellValue());
-			case ERROR:
-				return String.valueOf(cell.getErrorCellValue());
-			default:
-				break;
-			}
-			return "";
+			DataFormatter formatter = new DataFormatter();
+			return formatter.formatCellValue(cell);
+//Uncomment to change behavior per cell type
+//			CellType cell_type = cell.getCellTypeEnum();
+//			switch(cell_type) {
+//			case STRING:
+//				/* All cells in the SDTM/ADaM Spec is expected to be formatted as String. */
+//				return cell.getStringCellValue();
+//			case BOOLEAN:
+//				return String.valueOf(cell.getBooleanCellValue());
+//			case FORMULA:
+//				return cell.getCellFormula();
+//			case NUMERIC:
+//				/* 0 will be returned for a blank cell. */
+//				return String.valueOf(cell.getNumericCellValue());
+//			case ERROR:
+//				return String.valueOf(cell.getErrorCellValue());
+//			default:
+//				break;
+//			}
+//			return "";
 		}
 		
 		/**/
