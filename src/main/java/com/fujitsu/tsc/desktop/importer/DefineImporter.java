@@ -58,14 +58,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This is a class to validate ODM-XML, bind ODM-XML to {@link OdmModel}, and write the {@link OdmModel} to Excel.
  * To use this class, you must call a constructor first, validateSoft() second to bind, and then generateExcel().
  */
 public class DefineImporter {
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger = LogManager.getLogger();
 
 	private ExcelStyle excelStyle;
 	private Config config;

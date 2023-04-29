@@ -8,17 +8,18 @@
 
 package com.fujitsu.tsc.desktop.util;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Properties;
 import java.util.stream.Stream;
 
 public class Config {
 
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger = LogManager.getLogger();
 
 	public static String SOFTWARE_NAME = "tsClinical Metadata";
-	public static String SOFTWARE_VERSION = "1.1.1 (Open Source Edition)";
+	public static String SOFTWARE_VERSION = "1.1.2 (Open Source Edition)";
 	public static String[] DEFINE_VERSIONS = new String[] { "2.0.0", "2.1.n" };
 	public static String[] ODM_VERSIONS = new String[] { "1.3.2" };
 	public static String[] EDT_TYPE = new String[] {
@@ -112,6 +113,7 @@ public class Config {
     public String crfArchitectLocation;
     public String[] crfSourceFiles;
     public String crfHeaderCnt;
+    public String crfHeaderRow;
     public String crfEncoding = "UTF-8";
     public String crfDelimiter;
     public String crfTextQualifier = "\"";
@@ -120,6 +122,7 @@ public class Config {
 	/* Parameters of CreateEdtSpec */
     public String edtType = "Test Results (LAB Normalized)";
     public String edtHeaderCnt;
+    public String edtHeaderRow;
     public String edtEncoding = "UTF-8";
     public String edtDelimitedOrFixed = "Delimited";
     public String edtDelimiter;
@@ -287,6 +290,8 @@ public class Config {
 		}
 		if (!prop.getProperty("crfHeaderCnt", "").equals(""))
 			crfHeaderCnt = prop.getProperty("crfHeaderCnt");
+		if (!prop.getProperty("crfHeaderRow", "").equals(""))
+			crfHeaderRow = prop.getProperty("crfHeaderRow");
 		if (!prop.getProperty("crfEncoding", "").equals(""))
 			crfEncoding = prop.getProperty("crfEncoding");
 		if (!prop.getProperty("crfDelimiter", "").equals(""))
@@ -301,6 +306,8 @@ public class Config {
 			edtType = prop.getProperty("edtType");
 		if (!prop.getProperty("edtHeaderCnt", "").equals(""))
 			edtHeaderCnt = prop.getProperty("edtHeaderCnt");
+		if (!prop.getProperty("edtHeaderRow", "").equals(""))
+			edtHeaderRow = prop.getProperty("edtHeaderRow");
 		if (!prop.getProperty("edtEncoding", "").equals(""))
 			edtEncoding = prop.getProperty("edtEncoding");
 		if (!prop.getProperty("edtDelimitedOrFixed", "").equals(""))

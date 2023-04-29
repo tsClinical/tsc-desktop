@@ -72,6 +72,7 @@ public class OdmStudyModel {
 	/** # of Header Lines */
 	@ExcelColumn( name = "# of Header Lines" , ordinal = 17)
 	public int header_line;
+	public int header_row_num;
 	/** Dataset Character Encoding */
 	@ExcelColumn( name = "Dataset Character Encoding" , ordinal = 18)
 	public String encoding;
@@ -112,6 +113,7 @@ public class OdmStudyModel {
 		this.source_system = "";
 		this.edc_dataset_type = "";
 		this.header_line = 1;
+		this.header_row_num = 1;
 		this.encoding = "";
 		this.delimiter = "";
 		this.text_qualifier = "";

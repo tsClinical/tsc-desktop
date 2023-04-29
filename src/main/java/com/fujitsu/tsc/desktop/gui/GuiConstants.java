@@ -132,7 +132,7 @@ public class GuiConstants {
 //	public static String SOFTWARE_NAME = "tsClinical Metadata Desktop Tools";
 //	public static String SOFTWARE_VERSION_LABEL = "V1.0.0";
 	public static String WEBSITE_URL = "https://github.com/tsClinical/tsc-desktop";
-	public static String COPYRIGHT = "Copyright 2020-2022 Fujitsu Limited. All Rights Reserved.";
+	public static String COPYRIGHT = "Copyright 2020-2023 Fujitsu Limited. All Rights Reserved.";
 
 	/* Other constants */
 	public static String[] DEFINE_VERSIONS = new String[] { "2.0.0" };

@@ -19,7 +19,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A class for a menu bar of the tsc-desktop tool extending JMenuBar
@@ -27,7 +28,7 @@ import org.apache.log4j.Logger;
 public class DesktopMenuBar extends JMenuBar implements ActionListener {
 
 	private static final long serialVersionUID = 5574971135909932382L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger;
 	
 	private GuiMain parent;	//Root window
 	private JMenu fileMenu;
@@ -59,6 +60,7 @@ public class DesktopMenuBar extends JMenuBar implements ActionListener {
      * @param parent The GuiMain object
      */
 	public DesktopMenuBar(GuiMain parent) {
+		logger = LogManager.getLogger();
     	this.parent = parent;
 		initComponents();
 	}

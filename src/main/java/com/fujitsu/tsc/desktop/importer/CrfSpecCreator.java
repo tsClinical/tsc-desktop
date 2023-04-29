@@ -382,8 +382,8 @@ public class CrfSpecCreator {
 
 
 	private String getColumnName(int columnIdx) {
-		if (study.header_line >= 1) {
-			return getStr(0, columnIdx);
+		if (study.header_row_num >= 1) {
+			return getStr(study.header_row_num - 1, columnIdx);
 		} else {
 			return "Column" + columnIdx;
 		}

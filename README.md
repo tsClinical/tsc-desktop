@@ -4,7 +4,7 @@ tags: []
 ---
 
 # tsClinical Metadata Desktop Tools
-Version 1.1.1
+Version 1.1.2
 
 ### Table of Contents
 [1 License](#1-license)  
@@ -43,22 +43,15 @@ The binary distribution contains the following resources. AdoptOpenJDK is avaiab
 * Eclipse Temurin 11.0.18
 * Material Design Icons
 * commons-beanutils-1.9.4.jar
-* commons-codec-1.10.jar
-* commons-collections-3.2.2.jar
 * commons-collections4-4.4.jar
-* commons-io-2.8.0.jar
-* commons-lang3-3.11.jar
-* commons-logging-1.2.jar
+* commons-io-2.11.0.jar
+* commons-lang3-3.12.0.jar
 * commons-text-1.10.0.jar
-* curvesapi-1.04.jar
-* log4j-1.2.17.jar
-* opencsv-5.3.jar
-* poi-3.17.jar
-* poi-ooxml-3.17.jar
-* poi-ooxml-schemas-3.17.jar
-* stax-api-1.0.1.jar
-* xml-apis-1.3.04.jar
-* xmlbeans-2.6.0.jar
+* log4j-api-2.20.0.jar
+* log4j-core-2.20.0.jar
+* opencsv-5.7.1.jar
+* poi-5.2.3.jar
+* poi-ooxml-5.2.3.jar
 
 ### 5 Trademarks and Logos
 Fujitsu Limited reserves all rights to trademakrs and logos included in the binary distribution.

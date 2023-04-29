@@ -4,7 +4,7 @@ tags: []
 ---
 
 # User's Guide - tsClinical Metadata Desktop Tools
-Version 1.1.0
+Version 1.1.2
 
 ### 1. Menus
 #### 1.1. Convert from Excel to Define-XML
@@ -129,6 +129,7 @@ A required OID is missing, or an OID refers to an invalid (non-existing) target.
 |Architect CRF Location (.xlsx)|Select an Architect Loader Draft Spreadsheet file (.xlsx only) of Medidata Rave EDC.[\*1]|
 |Datasets Text Files|Select dataset files (text files in table format) exported out of EDC.|
 |# of Header Lines|Number of header rows of Datasets Text Files (1 or above). Required when Datasets Text Files are entered.|
+|Header Row Number|The number of row that contains column names (1 or above, up to # of Header Lines). Required when Datasets Text Files are entered.|
 |Character Encoding	Datasets|Character encoding of Datasets Text Files. Select from "UTF-8", "ISO-8859-1" or "Shift_JIS". Required when Datasets Text Files are entered.|
 |Delimiter|A character used as a delimiter of Datasets Text Files (a single character or a tab (\t)). Required when Datasets Text Files are entered.|
 |Text Qualifier|A special character that encloses each column value of Datasets Text Files. Select from " or ' if applicable, or "(None)" if not applicable. Required when Datasets Text Files are entered.|
@@ -150,6 +151,7 @@ A required OID is missing, or an OID refers to an invalid (non-existing) target.
 |:---|:---|
 |Type|Select a type of eDT from a list.|
 |# of Header Lines|Number of header rows of the text file (1 or above).|
+|Header Row Number|The number of row that contains column names (1 or above, up to # of Header Lines).|
 |Character Encoding|Character encoding of the text file. Select from "UTF-8", "ISO-8859-1" or "Shift_JIS".|
 |Delimited/Fixed Width|Select a type of the text file. Only "Delimited" can be selected.|
 |Delimiter|A character used as a delimiter of the text file (a single character or a tab (\t)).|
@@ -226,6 +228,7 @@ A user can configure the tool by editing the `main.properties` file (created aut
 |crfArchitectLocation|Equal to "Architect CRF Location (.xlsx)" on the Create CRF Spec from Datasets screen.|
 |crfSourceFiles|Equal to "Datasets Text Files" on the Create CRF Spec from Datasets screen.|
 |crfHeaderCnt|Equal to "# of Header Lines" on the Create CRF Spec from Datasets screen.|
+|crfHeaderRow|Equal to "Header Row Number" on the Create CRF Spec from Datasets screen.|
 |crfEncoding|Equal to "Character Encoding" on the Create CRF Spec from Datasets screen.|
 |crfDelimiter|Equal to "Delimiter" on the Create CRF Spec from Datasets screen.|
 |crfTextQualifier|Equal to "Text Qualifier" on the Create CRF Spec from Datasets screen.|
@@ -235,6 +238,7 @@ A user can configure the tool by editing the `main.properties` file (created aut
 |edtCodelistTableName|Name of the Excel sheet that describes Codelist information for eDT Spec.|
 |edtType|Equal to "Type" on the Create eDT Spec from Datasets screen.|
 |edtHeaderCnt|Equal to "# of Header Lines" on the Create eDT Spec from Datasets screen.|
+|edtHeaderRow|Equal to "Header Row Number" on the Create eDT Spec from Datasets screen.|
 |edtEncoding|Equal to "Character Encoding" on the Create eDT Spec from Datasets screen.|
 |edtDelimitedOrFixed|Equal to "Delimited/Fixed Width" on the Create eDT Spec from Datasets screen.|
 |edtDelimiter|Equal to "Delimiter" on the Create eDT Spec from Datasets screen.|
@@ -245,5 +249,5 @@ A user can configure the tool by editing the `main.properties` file (created aut
 |validateSchemaLocation|Equal to "Schema Location (.xsd)" on the Validate XML against XML Schema screen.|
 
 ---
-Copyright (c) 2020-2022 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2023 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.

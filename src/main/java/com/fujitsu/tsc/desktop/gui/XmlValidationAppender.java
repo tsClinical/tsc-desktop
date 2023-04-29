@@ -14,14 +14,16 @@ import javax.swing.table.TableModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+import org.apache.logging.log4j.core.LogEvent;
 import org.xml.sax.SAXParseException;
 
 import com.fujitsu.tsc.desktop.util.ErrorInfo;
 
-public class XmlValidationAppender extends AppenderSkeleton {
-//	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+public class XmlValidationAppender {
 	private JTable table;
 	private int nextLineNum;	//Line number in the table where the next validation error should be added.
 
@@ -31,7 +33,7 @@ public class XmlValidationAppender extends AppenderSkeleton {
 	}
 
 	public void writeNext(SAXParseException ex) {
-		String br = System.getProperty("line.separator");	// Kaigyo
+		String br = System.lineSeparator();
 		TableModel model = table.getModel();
 		if (model.getRowCount() <= nextLineNum) {
 			((DefaultTableModel)model).addRow(new String[] {null, null});
@@ -121,19 +123,5 @@ public class XmlValidationAppender extends AppenderSkeleton {
 			((DefaultTableModel)model).addRow(new String[] {null, null});
 		}
 		model.setValueAt(e.getMessage(), nextLineNum++, 1);
-	}
-
-	@Override
-	protected void append(LoggingEvent arg0) {
-       	writeMessage(arg0.getRenderedMessage());
-	}
-
-	@Override
-	public void close() {
-	}
-
-	@Override
-	public boolean requiresLayout() {
-		return true;
 	}
 }

@@ -15,7 +15,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 //import org.apache.commons.text.StringEscapeUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -95,7 +96,7 @@ public class OdmXmlReader extends DefaultHandler {
 	 * @param metadata_version_oid When multiple metadata versions are included in the ODM xml file, only metadata of this version will be read. Cannot be null.
 	 */
 	public OdmXmlReader(Config config, String study_oid, String metadata_version_oid){
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 		this.config = config;
 		this.study_oid = study_oid;
 		this.metadata_version_oid = metadata_version_oid;

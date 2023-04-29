@@ -8,7 +8,8 @@
 
 package com.fujitsu.tsc.desktop.exporter;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -49,20 +50,20 @@ public class ExcelReader implements MetaDataReader {
 
 	public ExcelReader(String dataSourceLocation, String tableName)
 			throws TableNotFoundException, InvalidFormatException, IOException {
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 		init(dataSourceLocation, tableName);
 	}
 
 // Changed for v1.1.0 - now MetaDataReader allows a WhereClause array.
 //	public ExcelReader(String dataSourceLocation, String tableName, WhereClause clause)
 //			throws FileNotFoundException, TableNotFoundException {
-//		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+//		logger = LogManager.getLogger();
 //		init(dataSourceLocation, tableName);
 //		setWhereClause(clause);
 //	}
 	public ExcelReader(String dataSourceLocation, String tableName, WhereClause clauseArray[])
 			throws TableNotFoundException, InvalidFormatException, IOException {
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 		init(dataSourceLocation, tableName);
 		setWhereClause(tableName, clauseArray);
 	}

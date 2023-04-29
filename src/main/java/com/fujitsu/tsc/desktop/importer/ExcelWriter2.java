@@ -29,6 +29,7 @@ import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.DefaultIndexedColorMap;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -158,7 +159,7 @@ public class ExcelWriter2 {
 	public XSSFCellStyle createCellStyleRed(XSSFWorkbook book) {
 		XSSFCellStyle style = book.createCellStyle();
 		style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // No color without this 
-		style.setFillForegroundColor(new XSSFColor(new java.awt.Color(192, 80, 77)));
+		style.setFillForegroundColor(new XSSFColor(new java.awt.Color(192, 80, 77), new DefaultIndexedColorMap()));
 		style.setBorderTop(BorderStyle.THIN); // No frame without this
 		style.setBorderBottom(BorderStyle.THIN); // No frame without this
 		style.setBorderLeft(BorderStyle.THIN); // No frame without this
@@ -180,7 +181,7 @@ public class ExcelWriter2 {
 	public XSSFCellStyle createCellStyleYellow(XSSFWorkbook book) {
 		XSSFCellStyle style = book.createCellStyle();
 		style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // No color without this
-		style.setFillForegroundColor(new XSSFColor(new java.awt.Color(255, 255, 153)));
+		style.setFillForegroundColor(new XSSFColor(new java.awt.Color(255, 255, 153), new DefaultIndexedColorMap()));
 		style.setBorderTop(BorderStyle.THIN); // No frame without this
 		style.setBorderBottom(BorderStyle.THIN); // No frame without this
 		style.setBorderLeft(BorderStyle.THIN); // No frame without this
@@ -201,7 +202,7 @@ public class ExcelWriter2 {
 	public XSSFCellStyle createCellStyleGray(XSSFWorkbook book) {
 		XSSFCellStyle style = book.createCellStyle();
 		style.setFillPattern(FillPatternType.SOLID_FOREGROUND); // No color without this
-		style.setFillForegroundColor(new XSSFColor(new java.awt.Color(217, 217, 217)));
+		style.setFillForegroundColor(new XSSFColor(new java.awt.Color(217, 217, 217), new DefaultIndexedColorMap()));
 		style.setBorderTop(BorderStyle.THIN); // No frame without this
 		style.setBorderBottom(BorderStyle.THIN); // No frame without this
 		style.setBorderLeft(BorderStyle.THIN); // No frame without this

@@ -29,12 +29,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DefineExportResultPanel extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger;
 	private GuiMain parent;
     private Font titleFont;
     private Font defaultFont;
@@ -56,6 +57,7 @@ public class DefineExportResultPanel extends JPanel {
 	private JButton backButton;
 	
 	public DefineExportResultPanel(GuiMain parent) {
+		logger = LogManager.getLogger();
 		this.parent = parent;
         titleFont = new Font(GuiConstants.FONT_NAME_TITLE, GuiConstants.FONT_STYLE_TITLE, GuiConstants.FONT_SIZE_TITLE);
         defaultFont = new Font(GuiConstants.FONT_NAME, GuiConstants.FONT_STYLE, GuiConstants.FONT_SIZE);

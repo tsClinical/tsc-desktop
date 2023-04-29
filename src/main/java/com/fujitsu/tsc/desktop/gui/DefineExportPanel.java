@@ -32,11 +32,16 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbookFactory;
 
 import com.fujitsu.tsc.desktop.util.Config;
 import com.fujitsu.tsc.desktop.util.ErrorLog;
@@ -54,7 +59,7 @@ import com.fujitsu.tsc.desktop.exporter.TableNotFoundException;
 public class DefineExportPanel extends JPanel implements ActionListener {
     
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger;
     private Config config;
     private GuiMain parent;	//Root window
     private Font titleFont;
@@ -94,6 +99,7 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 	private JButton runButton;
 
     public DefineExportPanel(GuiMain parent, Config config){
+    	logger = LogManager.getLogger();
     	this.config = config;
     	this.parent = parent;
         titleFont = new Font(GuiConstants.FONT_NAME_TITLE, GuiConstants.FONT_STYLE_TITLE, GuiConstants.FONT_SIZE_TITLE);
@@ -382,10 +388,13 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 				parent.defineExportResultPanel.clearBodyPanel();
 				Runnable exportDefine = new Runnable() {
 					public void run() {
-				        EditorPaneAppender epAppender = new EditorPaneAppender();
+						final LoggerContext loggerContext = (LoggerContext)LogManager.getContext(false);
+						final Configuration loggerConfig = loggerContext.getConfiguration();
+						final PatternLayout patternLayout = PatternLayout.newBuilder().withPattern("[%p] %m%n").build();
+				        EditorPaneAppender epAppender = new EditorPaneAppender(patternLayout);
 				        epAppender.setEditorPane(parent.defineExportResultPanel.gResultEditorPane);
-				        epAppender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
-				        logger.addAppender(epAppender);
+				        epAppender.start();
+				        loggerConfig.getRootLogger().addAppender(epAppender, Level.INFO, null);
 						/* Configure Define-XML Generator */
 						config.e2dDefineVersion = defineVersionCB.getSelectedItem().toString();
 						config.e2dDatasetType = Config.DatasetType.valueOf(datasetTypeCB.getSelectedItem().toString());
@@ -398,7 +407,8 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 						logger.info("Opening the source Excel file...");
 						try {
 							File sourceFile = new File(config.e2dDataSourceLocation);
-							workbook = new XSSFWorkbook(sourceFile);
+							XSSFWorkbookFactory factory = new XSSFWorkbookFactory();
+							workbook = factory.create(sourceFile, null, true);
 							logger.info("Loading...");
 							SdtmAdamSpecImporter importer = new SdtmAdamSpecImporter(config, workbook);
 							List<ErrorLog> error_logs = importer.parse();
@@ -418,7 +428,7 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 										logger.error(error_log_error.print());
 									}
 									logger.error("Processing suspended.");
-//									workbook.close();
+									workbook.close();
 									return;
 								}
 							}
@@ -435,11 +445,12 @@ public class DefineExportPanel extends JPanel implements ActionListener {
 							logger.info("Define-XML has been successfully created.");
 							parent.defineExportResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
-							logger.removeAppender(epAppender);
 //							workbook.close();
 						} catch (Exception ex) {
 							logger.error(ExceptionUtils.getStackTrace(ex));
-							logger.removeAppender(epAppender);
+						} finally {
+							epAppender.stop();
+							loggerConfig.getRootLogger().removeAppender(EditorPaneAppender.APPENDER_NAME);
 						}
 				    }
 				};

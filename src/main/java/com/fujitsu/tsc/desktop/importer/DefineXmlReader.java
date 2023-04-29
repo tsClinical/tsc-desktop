@@ -13,7 +13,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 //import org.apache.commons.text.StringEscapeUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -62,7 +63,7 @@ import com.fujitsu.tsc.desktop.util.TscStack;
  */
 public class DefineXmlReader extends DefaultHandler {
 	
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger = LogManager.getLogger();
 	private static String MESSAGE_ORPHANED = "An orphaned element found.";
 	private Config config;
 	private Locator locator;
@@ -119,7 +120,7 @@ public class DefineXmlReader extends DefaultHandler {
 	 * @param config An DefineModel object to which the Define-XML file is bound. Cannot be null.
 	 */
 	public DefineXmlReader(Config config){
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 		this.config = config;
 	}
 

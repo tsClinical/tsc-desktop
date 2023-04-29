@@ -13,8 +13,8 @@ import java.io.IOException;
 import java.io.FileReader;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import com.fujitsu.tsc.desktop.util.Config;
@@ -22,7 +22,7 @@ import com.fujitsu.tsc.desktop.util.InvalidParameterException;
 
 public class XmlGenerator {
 
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger;
 	private Properties prop;
 	private Config config;
 	private Config.RunMode mode;
@@ -31,17 +31,20 @@ public class XmlGenerator {
 	 * This constructor creates a new Generator object.
 	 */
 	public XmlGenerator() {
+		logger = LogManager.getLogger();
 		/* Configure the Generator object with a default config and run mode. */
 		this.config = new Config();
 		this.mode = config.runMode;
 	}
 
 	public XmlGenerator(Config config) {
+		logger = LogManager.getLogger();
 		this.config = config;
 		this.mode = Config.RunMode.API;
 	}
 
 	public XmlGenerator(Config config, Config.RunMode mode) {
+		logger = LogManager.getLogger();
 		this.config = config;
 		this.mode = mode;
 	}
@@ -327,7 +330,6 @@ public class XmlGenerator {
 	}
 	
 	public static void main(String[] args) throws InvalidFormatException {
-		PropertyConfigurator.configure("./properties/log4j.properties");
 		String[] strConfig = null;
 		logger.info("Command Line Interface (CLI) is not supported.");
 		System.exit(-1);

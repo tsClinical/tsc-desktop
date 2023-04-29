@@ -24,13 +24,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import com.fujitsu.tsc.desktop.importer.EdtSpecCreator;
 import com.fujitsu.tsc.desktop.importer.ExcelWriter2;
@@ -44,7 +50,7 @@ import com.fujitsu.tsc.desktop.gui.EditorPaneAppender;
 public class EdtSpecCreatePanel extends JPanel implements ActionListener {
     
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger = LogManager.getLogger();
     private GuiMain parent;	//Root window
     private Font titleFont;
     private Font defaultFont;
@@ -61,6 +67,8 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
     protected JComboBox<String> edtTypeCB;
     private JLabel headerCntL;
     protected JTextField headerCntTF;
+    private JLabel headerRowL;
+    protected JTextField headerRowTF;
     private JLabel encodingL;
     protected JComboBox<String> encodingCB;
     private JLabel delimitedOrFixedL;
@@ -143,6 +151,34 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
         edtTypeCB = new JComboBox<String>(Config.EDT_TYPE);
         headerCntL = new JLabel("# of Header Lines:");
         headerCntTF = new JTextField("");
+        headerRowL = new JLabel("Header Row Number:");
+        headerRowL.setVisible(false);
+        headerRowTF = new JTextField("");
+        headerRowTF.setVisible(false);
+        
+        headerCntTF.getDocument().addDocumentListener(new DocumentListener() {
+        	public void changedUpdate(DocumentEvent e) {
+        		//Do nothing - simply ignore the operation.
+        	}
+        	public void insertUpdate(DocumentEvent e) {
+        	    check();
+        	}
+        	public void removeUpdate(DocumentEvent e) {
+        		check();
+        	}
+            public void check() {
+            	int headerCnt = NumberUtils.toInt(headerCntTF.getText(), -1);
+            	if (headerCnt > 0) {
+            		headerRowL.setVisible(true);
+            		headerRowTF.setVisible(true);
+            	} else {
+            		headerRowL.setVisible(false);
+            		headerRowTF.setVisible(false);
+            		headerRowTF.setText("");
+            	}
+            }
+        });
+
         encodingL = new JLabel("Character Encoding:");
         encodingCB = new JComboBox<String>(Config.ENCODING);
         delimitedOrFixedL = new JLabel("Delimited/Fixed Width:");
@@ -210,6 +246,8 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
         edtTypeCB.setFont(defaultFont);
         headerCntL.setFont(defaultFont);
         headerCntTF.setFont(defaultFont);
+        headerRowL.setFont(defaultFont);
+        headerRowTF.setFont(defaultFont);
         encodingL.setFont(defaultFont);
         encodingCB.setFont(defaultFont);
         delimitedOrFixedL.setFont(defaultFont);
@@ -232,6 +270,7 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
         /* Populate values from config */
         edtTypeCB.setSelectedItem(config.edtType);
         headerCntTF.setText(config.edtHeaderCnt);
+        headerRowTF.setText(config.edtHeaderRow);
         encodingCB.setSelectedItem(config.edtEncoding);
         delimitedOrFixedCB.setSelectedItem(config.edtDelimitedOrFixed);
         delimiterTF.setText(config.edtDelimiter);
@@ -256,7 +295,12 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
                 .addGap(GuiConstants.BODY_GAP_HORIZONTAL, GuiConstants.BODY_GAP_HORIZONTAL, GuiConstants.BODY_GAP_HORIZONTAL)
                 .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(edtTypeCB, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(bodyPanelLayout.createSequentialGroup()
+                    	.addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
+                    	.addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
+                		.addComponent(headerRowL)
+                    	.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                    	.addComponent(headerRowTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE))
                     .addComponent(encodingCB, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
                     .addComponent(delimitedOrFixedCB, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
                     .addComponent(delimiterTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
@@ -282,7 +326,9 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
                 .addGap(GuiConstants.BODY_GAP_VERTICAL, GuiConstants.BODY_GAP_VERTICAL, GuiConstants.BODY_GAP_VERTICAL)
                 .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(headerCntL)
-                    .addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                	.addComponent(headerRowL)
+                	.addComponent(headerRowTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addGap(GuiConstants.BODY_GAP_VERTICAL, GuiConstants.BODY_GAP_VERTICAL, GuiConstants.BODY_GAP_VERTICAL)
                 .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(encodingL)
@@ -349,6 +395,8 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
         	return "Type cannot be blank.";
     	} else if (NumberUtils.toInt(headerCntTF.getText(), -1) < 0) {
     		return "# of Header Lines must be 0 or a positive number.";
+    	} else if (NumberUtils.toInt(headerRowTF.getText(), -1) <= 0 || NumberUtils.toInt(headerRowTF.getText(), -1) > NumberUtils.toInt(headerCntTF.getText(), -1)) {
+    		return "Header Row Number must be a positive number smaller than or equal to # of Header Lines.";
         } else if (encodingCB.getSelectedItem() == null) {
             return "Character Encoding cannot be blank.";
         } else if (delimitedOrFixedCB.getSelectedItem() == null) {
@@ -376,14 +424,19 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
 				parent.edtSpecCreateResultPanel.clearBodyPanel();
 				Runnable createEdtSpec = new Runnable() {
 					public void run() {
-				        EditorPaneAppender epAppender = new EditorPaneAppender();
+						final LoggerContext loggerContext = (LoggerContext)LogManager.getContext(false);
+						final Configuration loggerConfig = loggerContext.getConfiguration();
+						final PatternLayout patternLayout = PatternLayout.newBuilder().withPattern("[%p] %m%n").build();
+				        EditorPaneAppender epAppender = new EditorPaneAppender(patternLayout);
 				        epAppender.setEditorPane(parent.edtSpecCreateResultPanel.gResultEditorPane);
-				        epAppender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
-				        logger.addAppender(epAppender);
+				        epAppender.start();
+				        loggerConfig.getRootLogger().addAppender(epAppender, Level.INFO, null);
+				        
 						logger.info("Creating eDT Spec...");
 						StudyEdtGeneral param = new StudyEdtGeneral();
 						param.type_id = edtTypeCB.getSelectedItem().toString();
 						param.header_line = NumberUtils.toInt(headerCntTF.getText());
+						param.header_row_num = NumberUtils.toInt(headerRowTF.getText());
 						param.encoding = encodingCB.getSelectedItem().toString();
 						param.separating_method = delimitedOrFixedCB.getSelectedItem().toString();
 						param.delimiter = delimiterTF.getText();
@@ -404,7 +457,8 @@ public class EdtSpecCreatePanel extends JPanel implements ActionListener {
 						} catch (Exception ex) {
 							logger.error(ExceptionUtils.getStackTrace(ex));
 						} finally {
-							logger.removeAppender(epAppender);
+							epAppender.stop();
+							loggerConfig.getRootLogger().removeAppender(EditorPaneAppender.APPENDER_NAME);
 						}
 				    }
 				};

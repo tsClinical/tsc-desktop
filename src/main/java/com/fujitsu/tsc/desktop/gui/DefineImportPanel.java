@@ -31,8 +31,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.fujitsu.tsc.desktop.importer.DefineImporter;
@@ -42,7 +46,7 @@ import com.fujitsu.tsc.desktop.util.ErrorInfo;
 public class DefineImportPanel extends JPanel implements ActionListener{
 
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger;
     private Config config;
     private GuiMain parent;	//Root window
     private Font titleFont;
@@ -85,6 +89,7 @@ public class DefineImportPanel extends JPanel implements ActionListener{
 	private JButton runButton;
 	
     public DefineImportPanel(GuiMain parent, Config config) {
+    	logger = LogManager.getLogger();
     	this.config = config;
     	this.parent = parent;
         titleFont = new Font(GuiConstants.FONT_NAME_TITLE, GuiConstants.FONT_STYLE_TITLE, GuiConstants.FONT_SIZE_TITLE);
@@ -365,9 +370,7 @@ public class DefineImportPanel extends JPanel implements ActionListener{
 					public void run() {
 						/* Clear DefineImportResultPanel */
 						XmlValidationAppender appender = new XmlValidationAppender(parent.defineImportResultPanel.iResultTable);
-						appender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
 						appender.clear();
-				        logger.addAppender(appender);
 						parent.defineImportResultPanel.outputLocationUrl.setText(null);
 						
 						/* Configure Importer */
@@ -386,10 +389,13 @@ public class DefineImportPanel extends JPanel implements ActionListener{
 								if (!errors.isEmpty()) {
 									for (ErrorInfo error : errors) {
 										appender.writeNext(error);
+										logger.info(error.getMessage());
 									}
+									appender.writeMessage("Failed to import the Define-XML due to fatal errors.");
 									logger.error("Failed to import the Define-XML due to fatal errors.");
 									return;
 								} else {
+									appender.writeMessage("No fatal errors have been found in the Define-XML. Importing...");
 									logger.info("No fatal errors have been found in the Define-XML. Importing...");
 									errors = defineImporter.validateSoft();
 								}
@@ -402,18 +408,20 @@ public class DefineImportPanel extends JPanel implements ActionListener{
 							if (!errors.isEmpty()) {
 								for (ErrorInfo error : errors) {
 									appender.writeNext(error);
+									logger.info(error.getMessage());
 								}
-								logger.warn("An Excel file has been created, but some warning(s) exist.");
+								appender.writeMessage("An Excel file has been created, but some warning(s) exist.");
+								logger.info("An Excel file has been created, but some warning(s) exist.");
 							} else {
+								appender.writeMessage("An Excel file has been created. No warnings have been found.");
 								logger.info("An Excel file has been created. No warnings have been found.");
 							}
 							/* Display the output folder on the gResultPanel. */
 							parent.defineImportResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
 						} catch (Exception ex) {
+				    		appender.writeErrorMessage(ExceptionUtils.getStackTrace(ex));
 							logger.error(ExceptionUtils.getStackTrace(ex));
-						} finally {
-							logger.removeAppender(appender);
 						}
 				    }
 				};

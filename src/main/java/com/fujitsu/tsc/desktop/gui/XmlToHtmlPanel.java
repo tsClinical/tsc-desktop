@@ -35,8 +35,12 @@ import javax.xml.validation.Validator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.xml.sax.SAXException;
 
 import com.fujitsu.tsc.desktop.util.Config;
@@ -44,7 +48,7 @@ import com.fujitsu.tsc.desktop.util.Utils;
 
 public class XmlToHtmlPanel extends JPanel implements ActionListener {
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger = LogManager.getLogger();
     private Config config;
     private GuiMain parent;	//Root window
     private Font titleFont;
@@ -348,10 +352,13 @@ public class XmlToHtmlPanel extends JPanel implements ActionListener {
 				parent.xmlToHtmlResultPanel.clearBodyPanel();
 				Runnable runValidation = new Runnable() {
 					public void run() {
-						EditorPaneAppender epAppender = new EditorPaneAppender();
+						final LoggerContext loggerContext = (LoggerContext)LogManager.getContext(false);
+						final Configuration loggerConfig = loggerContext.getConfiguration();
+						final PatternLayout patternLayout = PatternLayout.newBuilder().withPattern("[%p] %m%n").build();
+				        EditorPaneAppender epAppender = new EditorPaneAppender(patternLayout);
 				        epAppender.setEditorPane(parent.xmlToHtmlResultPanel.gResultEditorPane);
-				        epAppender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
-				        logger.addAppender(epAppender);
+				        epAppender.start();
+				        loggerConfig.getRootLogger().addAppender(epAppender, Level.INFO, null);
 						try {
 							logger.info("Converting XML to HTML...");
 							TransformerFactory factory = TransformerFactory.newInstance();
@@ -365,7 +372,8 @@ public class XmlToHtmlPanel extends JPanel implements ActionListener {
 						} catch (Exception ex) {
 							logger.error(ExceptionUtils.getStackTrace(ex));
 						} finally {
-							logger.removeAppender(epAppender);
+							epAppender.stop();
+							loggerConfig.getRootLogger().removeAppender(EditorPaneAppender.APPENDER_NAME);
 						}
 					}
 				};

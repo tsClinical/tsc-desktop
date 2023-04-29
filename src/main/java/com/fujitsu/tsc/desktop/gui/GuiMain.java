@@ -32,14 +32,14 @@ import javax.swing.ListModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fujitsu.tsc.desktop.util.Config;
 
 public class GuiMain extends JFrame implements WindowListener {
 	private static final long serialVersionUID = 5574971135909932382L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger;
 
 	private float ratio;
 	private Properties prop;
@@ -165,8 +165,7 @@ public class GuiMain extends JFrame implements WindowListener {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-		PropertyConfigurator.configure("./properties/log4j.properties");
-
+    	logger = LogManager.getLogger();
 		logger.info(Config.SOFTWARE_NAME + " " + Config.SOFTWARE_VERSION);
 		logger.info(GuiConstants.COPYRIGHT);
 
@@ -270,6 +269,7 @@ public class GuiMain extends JFrame implements WindowListener {
 		    		prop.setProperty("crfArchitectLocation", crfSpecCreatePanel.architectLocationTF.getText());
 		    		prop.setProperty("crfSourceFiles", getSingleString(crfSpecCreatePanel.sourceFilesLI.getModel()));
 		    		prop.setProperty("crfHeaderCnt", crfSpecCreatePanel.headerCntTF.getText());
+		    		prop.setProperty("crfHeaderRow", crfSpecCreatePanel.headerRowTF.getText());
 		    		prop.setProperty("crfEncoding", (String)crfSpecCreatePanel.encodingCB.getSelectedItem());
 		    		prop.setProperty("crfDelimiter", crfSpecCreatePanel.delimiterTF.getText());
 		    		prop.setProperty("crfTextQualifier", (String)crfSpecCreatePanel.textQualifierCB.getSelectedItem());
@@ -278,6 +278,7 @@ public class GuiMain extends JFrame implements WindowListener {
 		    		// Create eDT Spec
 		    		prop.setProperty("edtType", (String)edtSpecCreatePanel.edtTypeCB.getSelectedItem());
 		    		prop.setProperty("edtHeaderCnt", edtSpecCreatePanel.headerCntTF.getText());
+		    		prop.setProperty("edtHeaderRow", edtSpecCreatePanel.headerRowTF.getText());
 		    		prop.setProperty("edtEncoding", (String)edtSpecCreatePanel.encodingCB.getSelectedItem());
 		    		prop.setProperty("edtDelimitedOrFixed", (String)edtSpecCreatePanel.delimitedOrFixedCB.getSelectedItem());
 		    		prop.setProperty("edtDelimiter", edtSpecCreatePanel.delimiterTF.getText());

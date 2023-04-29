@@ -31,14 +31,15 @@ import java.net.URISyntaxException;
 
 import javax.swing.GroupLayout.Alignment;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fujitsu.tsc.desktop.util.Config;
 
 public class AboutDialog extends JDialog {
 
 	private static final long serialVersionUID = -1976452718671539689L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger;
 
 	private JLabel aboutSw;
     private JLabel swVersion;
@@ -49,6 +50,7 @@ public class AboutDialog extends JDialog {
 
     public AboutDialog(JFrame frame) {
     	super(frame);
+    	logger = LogManager.getLogger();
     	initComponents();
     }
     

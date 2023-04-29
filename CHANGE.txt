@@ -1,4 +1,25 @@
 ﻿========================================
+tsClinical Metadata Desktop Tools v1.1.2
+    Released on: May 1, 2023
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) [Create CRF Spec from Datasets] and [Create eDT Spec from Datasets]
+    menus now support Header Row Number that indicates from which row
+    the tool extracts column names. Former versions always selected the
+    first row as the header row even when # of Header Lines is more
+    than one.
+(2) [Convert from Excel to Define-XML] now opens the input Excel file
+    explicitly in the read-only mode. The former v1.1.x locked the
+    Excel file while the tool is running.
+(3) All dependent Java libraries, especially Log4j and POI, have been
+    upgraded to the latest available versions to address security
+    vulnerabilities contained in former library versions including
+    CVE-2022-23307, CVE-2022-23305, CVE-2022-23302, CVE-2021-4104,
+    CVE-2019-17571 and CVE-2019-12415.
+
+========================================
 tsClinical Metadata Desktop Tools v1.1.1
     Released on: February 3, 2023
 ========================================

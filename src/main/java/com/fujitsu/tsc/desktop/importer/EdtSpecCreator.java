@@ -272,8 +272,8 @@ public class EdtSpecCreator {
 
 
 	private String getColumnName(int columnIdx) {
-		if (param.header_line >= 1) {
-			return getStr(0, columnIdx);
+		if (param.header_row_num >= 1) {
+			return getStr(param.header_row_num - 1, columnIdx);
 		} else {
 			return "Column" + columnIdx;
 		}
@@ -334,6 +334,7 @@ public class EdtSpecCreator {
 		/** # of Header Lines */
 		@ExcelColumn( name = "# of Header Lines" , ordinal = 5)
 		public int header_line;
+		public int header_row_num;
 		/** Character Encoding */
 		@ExcelColumn( name = "Character Encoding" , ordinal = 6)
 		public String encoding;
