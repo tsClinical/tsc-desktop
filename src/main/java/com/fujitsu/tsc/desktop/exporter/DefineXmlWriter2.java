@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fujitsu.tsc.desktop.exporter.model.XmlDocument.ProcessingInstruction;
 import com.fujitsu.tsc.desktop.exporter.model.XmlDocument.XmlElement;
@@ -60,7 +61,7 @@ import com.fujitsu.tsc.desktop.util.Utils;
 
 public class DefineXmlWriter2 {
 	
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger;
 	private Config config;
 	private OutputStreamWriter sw;
 	private BufferedWriter writer;
@@ -92,6 +93,7 @@ public class DefineXmlWriter2 {
 	}
 
 	public DefineXmlWriter2 (Config config) throws UnsupportedEncodingException, FileNotFoundException {
+		logger = LogManager.getLogger();
 		this.config = config;
 		this.DELIMITER = config.valueDelimiter;
 		this.DEFINE_VERSION = config.e2dDefineVersion;

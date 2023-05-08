@@ -16,18 +16,19 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.table.TableCellRenderer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class MultiLineTableCellRenderer extends JTextArea implements TableCellRenderer {
 	
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger = LogManager.getLogger();
 	private Font defaultFont;
 
     public MultiLineTableCellRenderer() {
     	this.setLineWrap(true);
     	this.setWrapStyleWord(true);
     	this.setOpaque(true);
-    	this.setFont(new Font(GuiConstants.FONT_NAME, GuiConstants.FONT_STYLE, GuiConstants.FONT_SIZE));
+//    	this.setFont(new Font(GuiConstants.FONT_NAME, GuiConstants.FONT_STYLE, GuiConstants.FONT_SIZE));
     }
     
     public Component getTableCellRendererComponent(

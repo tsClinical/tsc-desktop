@@ -29,12 +29,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.LayoutStyle;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class EdtSpecCreateResultPanel extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger = LogManager.getLogger();
 	private GuiMain parent;
     private Font titleFont;
     private Font defaultFont;

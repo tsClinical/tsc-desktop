@@ -24,7 +24,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import com.fujitsu.tsc.desktop.exporter.DefineXmlWriter.TagType;
@@ -77,7 +78,7 @@ public class OdmXmlWriter {
 	
 	public OdmXmlWriter (Config config) throws InvalidParameterException, TableNotFoundException, InvalidParameterException, RequiredValueMissingException, InvalidFormatException, IOException {
 		
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 		this.config = config;
 		DELIMITER = config.valueDelimiter;
 		

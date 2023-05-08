@@ -27,7 +27,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import com.fujitsu.tsc.desktop.exporter.SuppUtil.IsEmpty;
@@ -88,7 +89,7 @@ public class DefineXmlWriter {
 
 	public DefineXmlWriter (Config config)
 			throws InvalidParameterException, TableNotFoundException, FileNotFoundException, IOException, RequiredValueMissingException, InvalidFormatException {
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 		this.config = config;
 		DELIMITER = config.valueDelimiter;
 		this.hashUSUBJID = new Hashtable<String, String>();

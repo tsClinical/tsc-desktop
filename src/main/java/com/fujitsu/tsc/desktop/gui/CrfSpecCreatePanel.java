@@ -29,14 +29,21 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.LayoutStyle;
 import javax.swing.ListModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import com.fujitsu.tsc.desktop.util.Config;
@@ -59,7 +66,7 @@ import com.fujitsu.tsc.desktop.importer.models.OdmUnitModel;
 public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger;
     private Config config;
     private GuiMain parent;	//Root window
     private Font titleFont;
@@ -80,6 +87,8 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
     protected JList<String> sourceFilesLI;
     private JLabel headerCntL;
     protected JTextField headerCntTF;
+    private JLabel headerRowL;
+    protected JTextField headerRowTF;
     private JLabel encodingL;
     protected JComboBox<String> encodingCB;
     private JLabel delimiterL;
@@ -104,6 +113,7 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 	private JButton runButton;
 	
     public CrfSpecCreatePanel(GuiMain parent, Config config) {
+    	logger = LogManager.getLogger();
     	this.config = config;
     	this.parent = parent;
         titleFont = new Font(GuiConstants.FONT_NAME_TITLE, GuiConstants.FONT_STYLE_TITLE, GuiConstants.FONT_SIZE_TITLE);
@@ -169,6 +179,34 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
         sourceFilesScrollPane = new JScrollPane(sourceFilesLI);
         headerCntL = new JLabel("# of Header Lines:");
         headerCntTF = new JTextField("");
+        headerRowL = new JLabel("Header Row Number:");
+        headerRowL.setVisible(false);
+        headerRowTF = new JTextField("");
+        headerRowTF.setVisible(false);
+        
+        headerCntTF.getDocument().addDocumentListener(new DocumentListener() {
+        	public void changedUpdate(DocumentEvent e) {
+        		//Do nothing - simply ignore the operation.
+        	}
+        	public void insertUpdate(DocumentEvent e) {
+        	    check();
+        	}
+        	public void removeUpdate(DocumentEvent e) {
+        		check();
+        	}
+            public void check() {
+            	int headerCnt = NumberUtils.toInt(headerCntTF.getText(), -1);
+            	if (headerCnt > 0) {
+            		headerRowL.setVisible(true);
+            		headerRowTF.setVisible(true);
+            	} else {
+            		headerRowL.setVisible(false);
+            		headerRowTF.setVisible(false);
+            		headerRowTF.setText("");
+            	}
+            }
+        });
+
         encodingL = new JLabel("Character Encoding:");
         encodingCB = new JComboBox<String>(Config.ENCODING);
         delimiterL = new JLabel("Delimiter:");
@@ -264,6 +302,8 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
         sourceFilesL.setFont(defaultFont);
         headerCntL.setFont(defaultFont);
         headerCntTF.setFont(defaultFont);
+        headerRowL.setFont(defaultFont);
+        headerRowTF.setFont(defaultFont);
         encodingL.setFont(defaultFont);
         encodingCB.setFont(defaultFont);
         delimiterL.setFont(defaultFont);
@@ -283,6 +323,7 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
         if (!ArrayUtils.isEmpty(config.crfSourceFiles))
         	sourceFilesLI.setListData(config.crfSourceFiles);
         headerCntTF.setText(config.crfHeaderCnt);
+        headerRowTF.setText(config.crfHeaderRow);
         encodingCB.setSelectedItem(config.crfEncoding);
         delimiterTF.setText(config.crfDelimiter);
         textQualifierCB.setSelectedItem(config.crfTextQualifier);
@@ -306,7 +347,13 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
                 .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(architectLocationTF, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
                     .addComponent(sourceFilesScrollPane, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
-                    .addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(sourceFilesScrollPane, GroupLayout.DEFAULT_SIZE, 255, Short.MAX_VALUE)
+                    .addGroup(bodyPanelLayout.createSequentialGroup()
+                    	.addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
+                    	.addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
+                		.addComponent(headerRowL)
+                    	.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                    	.addComponent(headerRowTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE))
                     .addComponent(encodingCB, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
                     .addComponent(delimiterTF, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
                     .addComponent(textQualifierCB, GroupLayout.PREFERRED_SIZE, 255, GroupLayout.PREFERRED_SIZE)
@@ -341,7 +388,9 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
                     .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
                     .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                         .addComponent(headerCntL)
-                        .addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                        .addComponent(headerCntTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    	.addComponent(headerRowL)
+                    	.addComponent(headerRowTF, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                     .addGap(GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL, GuiConstants.CONFIG_GAP_VERTICAL)
                     .addGroup(bodyPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                         .addComponent(encodingL)
@@ -402,6 +451,8 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
     	if (sourceFilesLI.getModel() != null && sourceFilesLI.getModel().getSize() > 0) {
     		if (StringUtils.isEmpty(headerCntTF.getText()) || NumberUtils.toInt(headerCntTF.getText(), 0) < 1) {
     			return "\"# of Header Lines\" cannot be blank and must be a positive integer when \"Datasets Text Files\" is entered.";
+        	} else if (NumberUtils.toInt(headerRowTF.getText(), -1) <= 0 || NumberUtils.toInt(headerRowTF.getText(), -1) > NumberUtils.toInt(headerCntTF.getText(), -1)) {
+        		return "Header Row Number must be a positive number smaller than or equal to # of Header Lines.";
         	} else if (NumberUtils.toInt(headerCntTF.getText(), -1) < 0) {
         		return "# of Header Lines must be 0 or a positive number.";
     		} else if (encodingCB.getModel() == null) {
@@ -430,10 +481,14 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 	       		parent.crfSpecCreateResultPanel.clearBodyPanel();
 				Runnable createCrfSpec = new Runnable() {
 					public void run() {
-				        EditorPaneAppender epAppender = new EditorPaneAppender();
+						final LoggerContext loggerContext = (LoggerContext)LogManager.getContext(false);
+						final Configuration loggerConfig = loggerContext.getConfiguration();
+						final PatternLayout patternLayout = PatternLayout.newBuilder().withPattern("[%p] %m%n").build();
+				        EditorPaneAppender epAppender = new EditorPaneAppender(patternLayout);
 				        epAppender.setEditorPane(parent.crfSpecCreateResultPanel.gResultEditorPane);
-				        epAppender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
-				        logger.addAppender(epAppender);
+				        epAppender.start();
+				        loggerConfig.getRootLogger().addAppender(epAppender, Level.INFO, null);
+				        
 						OdmModel crf = null;
 						File outFile = new File(outputLocationTF.getText());
 						try {
@@ -441,6 +496,7 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 								OdmStudyModel params = new OdmStudyModel();
 								params.edc_dataset_type = "Text";
 								params.header_line = NumberUtils.toInt(headerCntTF.getText());
+								params.header_row_num = NumberUtils.toInt(headerRowTF.getText());
 								params.encoding = encodingCB.getSelectedItem().toString();
 								params.delimiter = delimiterTF.getText();
 								params.text_qualifier = textQualifierCB.getSelectedItem().toString();
@@ -490,7 +546,8 @@ public class CrfSpecCreatePanel extends JPanel implements ActionListener {
 						} catch (Exception ex) {
 							logger.error(ExceptionUtils.getStackTrace(ex));
 						} finally {
-							logger.removeAppender(epAppender);
+							epAppender.stop();
+							loggerConfig.getRootLogger().removeAppender(EditorPaneAppender.APPENDER_NAME);
 						}
 				    }
 				};

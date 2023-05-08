@@ -23,11 +23,12 @@ import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class FilePathTransferHandler extends TransferHandler {
 	
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger = LogManager.getLogger();
     private JTextComponent textComponent;
     private JList<String> listComponent;
     private FileNameExtensionFilter filter;

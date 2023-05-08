@@ -11,7 +11,8 @@ package com.fujitsu.tsc.desktop.validator;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 import org.xml.sax.SAXException;
@@ -30,7 +31,7 @@ public class DefaultValidationHandler extends DefaultHandler {
 	private List<ErrorInfo> errors = new ArrayList<>();
  
 	public DefaultValidationHandler(){
-		logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+		logger = LogManager.getLogger();
 	}
 
 	public void startDocument() {

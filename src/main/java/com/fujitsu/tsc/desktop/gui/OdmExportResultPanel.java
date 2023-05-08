@@ -32,13 +32,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class OdmExportResultPanel extends JPanel {
 	
 	private static final long serialVersionUID = 1L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger = LogManager.getLogger();
 	private GuiMain parent;
     private Font titleFont;
     private Font defaultFont;

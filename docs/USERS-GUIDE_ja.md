@@ -4,7 +4,7 @@ tags: []
 ---
 
 # User's Guide - tsClinical Metadata Desktop Tools
-Version 1.1.0
+Version 1.1.2
 
 ### 1. 各機能の説明
 #### 1.1. Convert from Excel to Define-XML
@@ -130,6 +130,7 @@ Version 1.1.0
 |Architect CRF Location (.xlsx)|Medidata Rave EDCのArchitect Loader Draft Spreadsheet（ファイル形式は.xlsxのみ）を指定します。[\*1]|
 |Datasets Text Files|EDCから出力したデータセットファイル（表形式のテキストファイル、複数可）を指定します。|
 |# of Header Lines|Datasets Text Filesを設定した場合に入力が必要です。テキストファイルのヘッダー行の数（1以上）を入力します。|
+|Header Row Number|Datasets Text Filesを設定した場合に入力が必要です。列名を含む行の行番号（1以上、# of Header Lines以下）を入力します。|
 |Character Encoding	Datasets|Text Filesを設定した場合に入力が必要です。テキストファイルの文字コードを「UTF-8」「ISO-8859-1」「Shift_JIS」から指定します。|
 |Delimiter|Datasets Text Filesを設定した場合に入力が必要です。テキストファイルの区切り文字（1文字またはタブ（\t））を入力します。|
 |Text Qualifier|Datasets Text Filesを設定した場合に入力が必要です。各列の囲み文字を「"」「'」から選択します。囲み文字が無い場合は「(None)」を選択します。|
@@ -151,6 +152,7 @@ Version 1.1.0
 |:---|:---|
 |Type|外部データの種類を選択します。|
 |# of Header Lines|テキストファイルのヘッダー行の数（1以上）を入力します。|
+|Header Row Number|列名を含む行の行番号（1以上、# of Header Lines以下）を入力します。|
 |Character Encoding|テキストファイルの文字コードを「UTF-8」「ISO-8859-1」「Shift_JIS」から指定します。|
 |Delimited/Fixed Width|テキストファイルの種類を選択します。「Delimited」のみ選択できます。|
 |Delimiter|テキストファイルの区切り文字（1文字またはタブ（\t））を入力します。|
@@ -227,6 +229,7 @@ Version 1.1.0
 |crfArchitectLocation|Create CRF Spec from Datasets画面上の「Architect CRF Location (.xlsx)」と同じ項目です。|
 |crfSourceFiles|Create CRF Spec from Datasets画面上の「Datasets Text Files」と同じ項目です。|
 |crfHeaderCnt|Create CRF Spec from Datasets画面上の「# of Header Lines」と同じ項目です。|
+|crfHeaderRow|Create CRF Spec from Datasets画面上の「Header Row Number」と同じ項目です。|
 |crfEncoding|Create CRF Spec from Datasets画面上の「Character Encoding」と同じ項目です。|
 |crfDelimiter|Create CRF Spec from Datasets画面上の「Delimiter」と同じ項目です。|
 |crfTextQualifier|Create CRF Spec from Datasets画面上の「Text Qualifier」と同じ項目です。|
@@ -236,6 +239,7 @@ Version 1.1.0
 |edtCodelistTableName|eDT Specの生成においてExcelのCodelistに関する情報を記載するシート名を指定します。|
 |edtType|Create eDT Spec from Datasets画面上の「Type」と同じ項目です。
 |edtHeaderCnt|Create eDT Spec from Datasets画面上の「# of Header Lines」と同じ項目です。|
+|edtHeaderRow|Create eDT Spec from Datasets画面上の「Header Row Number」と同じ項目です。|
 |edtEncoding|Create eDT Spec from Datasets画面上の「Character Encoding」と同じ項目です。|
 |edtDelimitedOrFixed|Create eDT Spec from Datasets画面上の「Delimited/Fixed Width」と同じ項目です。|
 |edtDelimiter|Create eDT Spec from Datasets画面上の「Delimiter」と同じ項目です。|
@@ -246,5 +250,5 @@ Version 1.1.0
 |validateSchemaLocation|Validate XML against XML Schema画面上の「Schema Location (.xsd)」と同じ項目です。|
 
 ---
-Copyright (c) 2020-2022 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2023 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.

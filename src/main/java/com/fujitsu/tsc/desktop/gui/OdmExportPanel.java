@@ -29,8 +29,12 @@ import javax.swing.LayoutStyle;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 
 import com.fujitsu.tsc.desktop.exporter.XmlGenerator;
@@ -43,7 +47,7 @@ import com.fujitsu.tsc.desktop.util.InvalidParameterException;
 public class OdmExportPanel extends JPanel implements ActionListener {
     
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger = LogManager.getLogger();
     private Config config;
     private GuiMain parent;	//Root window
     private Font titleFont;
@@ -335,10 +339,13 @@ public class OdmExportPanel extends JPanel implements ActionListener {
 				parent.odmExportResultPanel.clearBodyPanel();
 				Runnable exportOdm = new Runnable() {
 					public void run() {
-				        EditorPaneAppender epAppender = new EditorPaneAppender();
+						final LoggerContext loggerContext = (LoggerContext)LogManager.getContext(false);
+						final Configuration loggerConfig = loggerContext.getConfiguration();
+						final PatternLayout patternLayout = PatternLayout.newBuilder().withPattern("[%p] %m%n").build();
+				        EditorPaneAppender epAppender = new EditorPaneAppender(patternLayout);
 				        epAppender.setEditorPane(parent.odmExportResultPanel.gResultEditorPane);
-				        epAppender.setLayout(new PatternLayout("%-5p %c{2} - %m%n"));
-				        logger.addAppender(epAppender);
+				        epAppender.start();
+				        loggerConfig.getRootLogger().addAppender(epAppender, Level.INFO, null);
 						try {
 							/* Configure Define-XML Generator */
 							config.e2oOdmVersion = odmVersionCB.getSelectedItem().toString();
@@ -355,7 +362,8 @@ public class OdmExportPanel extends JPanel implements ActionListener {
 							| InvalidOidSyntaxException | RequiredValueMissingException | InvalidFormatException ex) {
 							logger.error(ex.getMessage());
 						} finally {
-							logger.removeAppender(epAppender);
+							epAppender.stop();
+							loggerConfig.getRootLogger().removeAppender(EditorPaneAppender.APPENDER_NAME);
 						}
 				    }
 				};

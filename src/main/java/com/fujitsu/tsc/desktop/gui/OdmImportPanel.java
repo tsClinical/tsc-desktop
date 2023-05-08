@@ -31,7 +31,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.xml.sax.SAXException;
 
 import com.fujitsu.tsc.desktop.util.Config;
@@ -41,7 +47,7 @@ import com.fujitsu.tsc.desktop.importer.OdmImporter;
 public class OdmImportPanel extends JPanel implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-    private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+    private static Logger logger = LogManager.getLogger();
     private Config config;
     private GuiMain parent;	//Root window
     private Font titleFont;
@@ -327,11 +333,14 @@ public class OdmImportPanel extends JPanel implements ActionListener {
 								if (!errors.isEmpty()) {
 									for (ErrorInfo error : errors) {
 										appender.writeNext(error);
+										logger.info(error.getMessage());
 									}
 									appender.writeMessage("Failed to import the ODM-XML due to fatal errors.");
+									logger.error("Failed to import the ODM-XML due to fatal errors.");
 									return;
 								} else {
 									appender.writeMessage("No fatal errors have been found in the ODM-XML. Importing...");
+									logger.info("No fatal errors have been found in the ODM-XML. Importing...");
 									errors = odmImporter.validateSoft();
 								}
 							}
@@ -339,23 +348,20 @@ public class OdmImportPanel extends JPanel implements ActionListener {
 							if (!errors.isEmpty()) {
 								for (ErrorInfo error : errors) {
 									appender.writeNext(error);
+									logger.info(error.getMessage());
 								}
 								appender.writeMessage("An Excel file has been created, but some warning(s) exist.");
+								logger.info("An Excel file has been created, but some warning(s) exist.");
 							} else {
 								appender.writeMessage("An Excel file has been created. No warnings have been found.");
+								logger.info("An Excel file has been created. No warnings have been found.");
 							}
 							/* Display the output folder on the gResultPanel. */
 							parent.odmImportResultPanel.outputLocationUrl.setText(
 									new File(outputLocationTF.getText()).getCanonicalPath());
-						} catch (IOException | SAXException | ParserConfigurationException ex) {
-							logger.error(ex.getMessage());
-							for (StackTraceElement e : ex.getStackTrace()) {
-								logger.error(e.toString());
-							}
-							ex.printStackTrace();
-				    		appender.writeErrorMessage(ex.getMessage());
-						} finally {
-//							logger.removeAppender(appender);
+						} catch (Exception ex) {
+				    		appender.writeErrorMessage(ExceptionUtils.getStackTrace(ex));
+							logger.error(ExceptionUtils.getStackTrace(ex));
 						}
 				    }
 				};

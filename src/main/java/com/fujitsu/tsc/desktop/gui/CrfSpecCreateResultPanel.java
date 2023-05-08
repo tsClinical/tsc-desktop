@@ -32,12 +32,13 @@ import javax.swing.JTable;
 import javax.swing.LayoutStyle;
 import javax.swing.table.DefaultTableModel;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CrfSpecCreateResultPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
-	private static Logger logger = Logger.getLogger("com.fujitsu.tsc.desktop");
+	private static Logger logger;
 	private GuiMain parent;
     private Font titleFont;
     private Font defaultFont;
@@ -59,6 +60,7 @@ public class CrfSpecCreateResultPanel extends JPanel {
 	private JButton backButton;
 	
 	public CrfSpecCreateResultPanel(GuiMain parent) {
+		logger = LogManager.getLogger();
 		this.parent = parent;
         titleFont = new Font(GuiConstants.FONT_NAME_TITLE, GuiConstants.FONT_STYLE_TITLE, GuiConstants.FONT_SIZE_TITLE);
         defaultFont = new Font(GuiConstants.FONT_NAME, GuiConstants.FONT_STYLE, GuiConstants.FONT_SIZE);
