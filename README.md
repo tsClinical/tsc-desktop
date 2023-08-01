@@ -4,7 +4,7 @@ tags: []
 ---
 
 # tsClinical Metadata Desktop Tools
-Version 1.1.2
+Version 1.1.3
 
 ### Table of Contents
 [1 License](#1-license)  
@@ -40,16 +40,16 @@ tsClinical Metadata Desktop Tools is a tool that transforms clinical study metad
 
 ### 4 Dependencies
 The binary distribution contains the following resources. AdoptOpenJDK is avaiable under the GPLv2 + Classpath Exception license. All the other resources are available under the Apache License, Version 2.0.
-* Eclipse Temurin 11.0.18
+* Eclipse Temurin 11.0.20
 * Material Design Icons
 * commons-beanutils-1.9.4.jar
 * commons-collections4-4.4.jar
-* commons-io-2.11.0.jar
+* commons-io-2.13.0.jar
 * commons-lang3-3.12.0.jar
 * commons-text-1.10.0.jar
 * log4j-api-2.20.0.jar
 * log4j-core-2.20.0.jar
-* opencsv-5.7.1.jar
+* opencsv-5.8.jar
 * poi-5.2.3.jar
 * poi-ooxml-5.2.3.jar
 

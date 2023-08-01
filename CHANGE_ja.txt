@@ -1,4 +1,18 @@
 ﻿========================================
+tsClinical Metadata Desktop Tools v1.1.3
+    Released on: Aug 1, 2023
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) Convert from Excel to Define-XMLの以下の不具合を修正しました。
+    - RESULT1シートのProgramming Code Document ID列がDefine-XMLに出力
+      されない。
+    - Define-XMLのAnalysis DisplayがRESULT1シートのDisplay Name順に表示
+      される。本バージョンではRESULT1シートの記入順で表示されるよう修正
+      しました。
+
+========================================
 tsClinical Metadata Desktop Tools v1.1.2
     Released on: May 1, 2023
 ========================================
