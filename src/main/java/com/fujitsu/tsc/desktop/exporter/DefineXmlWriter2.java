@@ -996,7 +996,7 @@ public class DefineXmlWriter2 {
 							prog_code_element.addElement(code_element);
 							code_element.addText(result.prog_code_text);
 						}
-						for (DocumentRef document_ref : result.docm_document_refs) {
+						for (DocumentRef document_ref : result.prog_code_document_refs) {
 							/* def:DocumentRef */
 							XmlElement doc_ref_element = new XmlElement("def:DocumentRef");
 							prog_code_element.addElement(doc_ref_element);

@@ -200,6 +200,6 @@ public class DefineARMDisplayModel implements Comparable<DefineARMDisplayModel> 
 	
 	@Override
 	public int compareTo(DefineARMDisplayModel arm) {
-		return this.display_name.compareTo(arm.display_name);
+		return Integer.compare(this.ordinal, arm.ordinal);
 	}
 }
