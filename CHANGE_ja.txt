@@ -1,6 +1,6 @@
 ﻿========================================
 tsClinical Metadata Desktop Tools v1.1.3
-    Released on: Aug 1, 2023
+    Released on: Aug 2, 2023
 ========================================
 
 New features and bug fixes:
