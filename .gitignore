@@ -25,6 +25,10 @@ hs_err_pid*
 # Eclipse Files
 .project
 .classpath
+/bin/
+/install/*
+/lib/*
+/resources/images/*
 /target/
 main.properties
-/bin/
+tsc-desktop.bat

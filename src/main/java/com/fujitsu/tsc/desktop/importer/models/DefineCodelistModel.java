@@ -8,7 +8,9 @@
 
 package com.fujitsu.tsc.desktop.importer.models;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -180,6 +182,18 @@ public class DefineCodelistModel implements Comparable<DefineCodelistModel> {
 	}
 	public static String createCodelistOid(String codelist_id) {
 		return "CL." + codelist_id;
+	}
+
+	/**
+	 * Find a list of DefineCodelistModel objects in the given DefineModel by the given Codelist ID
+	 * @param define DefineModel
+	 * @param codelist_id Codelist ID
+	 * @return A DefineCodelistModel object with the Codelist ID or null
+	 */
+	public static List<DefineCodelistModel> listByCodelistId(DefineModel define, String codelist_id) {
+		List<DefineCodelistModel> codelists = define.listSortedCodelist().stream()
+			.filter(o -> StringUtils.equals(o.codelist_id, codelist_id)).collect(Collectors.toList());
+		return codelists;
 	}
 
 	@Override

@@ -4,7 +4,7 @@ tags: []
 ---
 
 # tsClinical Metadata Desktop Tools
-Version 1.1.3
+Version 1.1.4
 
 ### 1. ライセンス
 
@@ -31,18 +31,18 @@ tsClinical Metadata Desktop Toolsは、臨床試験のメタデータをExcelか
 
 ### 4. 依存関係
 バイナリ配布版には以下のリソースが含まれています。Eclipse TemurinはGPLv2 + Classpath Exceptionライセンスに従います。その他のリソースはApache License, Version 2.0に従います。
-* Eclipse Temurin 11.0.20
+* Eclipse Temurin 11.0.28
 * Material Design Icons
-* commons-beanutils-1.9.4.jar
-* commons-collections4-4.4.jar
-* commons-io-2.13.0.jar
-* commons-lang3-3.12.0.jar
-* commons-text-1.10.0.jar
-* log4j-api-2.20.0.jar
-* log4j-core-2.20.0.jar
-* opencsv-5.8.jar
-* poi-5.2.3.jar
-* poi-ooxml-5.2.3.jar
+* commons-beanutils-1.11.0.jar
+* commons-collections4-4.5.0.jar
+* commons-io-2.20.0.jar
+* commons-lang3-3.18.0.jar
+* commons-text-1.14.0.jar
+* log4j-api-2.25.1.jar
+* log4j-core-2.25.1.jar
+* opencsv-5.12.0.jar
+* poi-5.4.1.jar
+* poi-ooxml-5.4.1.jar
 
 ### 5. 商標およびロゴ
 バイナリ配布版に含まれる商標およびロゴの一切の権利は富士通株式会社に帰属します。
@@ -54,5 +54,5 @@ tsClinical Metadata Desktop Toolsは、臨床試験のメタデータをExcelか
 本ソフトウェアの`docs`ディレクトリの`USERS-GUIDE`を参照してください。
 
 ---
-Copyright (c) 2020-2023 Fujitsu Limited. All rights reserved.  
+Copyright (c) 2020-2025 Fujitsu Limited. All rights reserved.  
 All brand names and product names in this document are registered trademarks or trademarks of their respective holders.

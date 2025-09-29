@@ -72,6 +72,8 @@ public class DefineModel {
 	private Map<DefineARMDatasetPk, DefineARMDatasetModel> map_define_arm_dataset;	//RESULT2
 	private Map<DefineMethodPk, DefineMethodModel> map_define_method;	//Methods referenced from VARIABLE and VALUE
 	private Map<DefineCommentPk, DefineCommentModel> map_define_comment;	//Comments
+	private List<String> auto_supp_comment_oids;	//CommentRefs for AutoSUPP datasets/variables are auto-generated.
+	private List<String> auto_supp_codelist_ids;	//CodelistRefs for AutoSUPP variables are auto-generated.
 	
 	public DefineModel() {
 		this.define_study = new DefineStudyModel();
@@ -88,6 +90,8 @@ public class DefineModel {
 		this.map_define_arm_dataset = new HashMap<>();
 		this.map_define_method = new HashMap<>();
 		this.map_define_comment = new HashMap<>();
+		this.auto_supp_comment_oids = new ArrayList<>();
+		this.auto_supp_codelist_ids = new ArrayList<>();
 	}
 	
 	public static enum YorN {
@@ -367,6 +371,22 @@ public class DefineModel {
 	
 	public void put(DefineCommentPk key, DefineCommentModel comment) {
 		this.map_define_comment.put(key, comment);
+	}
+	
+	public List<String> getAutoSuppCommentOids() {
+		return this.auto_supp_comment_oids;
+	}
+	
+	public void addAutoSuppCommentOid(String comment_oid) {
+		this.auto_supp_comment_oids.add(comment_oid);
+	}
+	
+	public List<String> getAutoSuppCodelistIds() {
+		return this.auto_supp_codelist_ids;
+	}
+	
+	public void addAutoSuppCodelistId(String codelist_id) {
+		this.auto_supp_codelist_ids.add(codelist_id);
 	}
 	
 	/**

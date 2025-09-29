@@ -1,4 +1,44 @@
 ﻿========================================
+tsClinical Metadata Desktop Tools v1.1.4
+    Released on: Sep 29, 2025
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) [Convert from Excel to Define-XML] has been updated to fix the
+    following issues:
+    - [Define-XML 2.0/2.1 from Excel AutoSupp] The SUBJID variable is
+      now created for SUPP-- datasets when the Demographics as
+      Collected (DC) dataset is defined in the Excel spreadsheet of the
+      AutoSupp style. The variable definition is copied from DC.SUBJID
+      for SUPPDC.SUBJID and from DM.SUBJID for the other SUPP--
+      datasets.
+    - [Define-XML 2.1] The def:ArchiveLocationID attribute of the
+      ItemGroupDef element was created when the No Data column of the
+      dataset was "Yes".
+    - [Define-XML 2.1] When the Origin value in the Excel spreadsheet
+      is "CRF" or "eDT", the tool is expected to convert the value to
+      "Collected". However, the tool did not convert it as expected on
+      some occasions when the Origin value was "CRF" in the Value sheet.
+    - [Define-XML 2.0/2.1 from Excel AutoSupp] This version has now
+      added an ability to add comments to SUPP-- datasets by adding
+      entries in the COMMENT sheet with its Comment OID in the
+      "COM.IG.DatasetName" format (e.g. COM.IG.SUPPDM). This update has
+      been made primarily to address the issue that the reason for No
+      Data could not be added as a dataset comment with Define-XML 2.1.
+    - [Define-XML 2.0/2.1 from Excel AutoSupp] This version has now
+      added an ability to add codelists to non-standard variables (i.e.
+      variables in the SUPP-- datasets) by adding entries in the
+      CODELIST sheet with its Codelist ID in the "DatasetName.
+      VariableName" format (e.g. SUPPDM.QEVAL). This update has been
+      made primarily to address the issue that the codelist for the
+      QEVAL variable as defined in SDTM-IG 3.4 could not be added.
+    - [Define-XML 2.1] The DefineVersion value in the Define-XML 2.1
+      was always "2.1.0". The issue has been fixed so that the
+      DefineVersion value in the Excel spreadsheet is mapped to the
+      DefineVersion attribute of the Define-XML.
+
+========================================
 tsClinical Metadata Desktop Tools v1.1.3
     Released on: Aug 2, 2023
 ========================================
