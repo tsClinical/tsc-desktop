@@ -102,14 +102,14 @@ public class DefineCommentModel implements Comparable<DefineCommentModel> {
 			this.document_refs = comment.document_refs;
 		}
 	}
-	
+
+	private static final String PREFIX = "COM.";
 	/**
 	 * This method creates CommentOID of each Define models.
 	 * @param obj
 	 * @return
 	 */
 	public static String createCommentOID(Object obj) {
-		final String PREFIX = "COM.";
 		if (obj == null) {
 			return "";
 		}
@@ -136,6 +136,30 @@ public class DefineCommentModel implements Comparable<DefineCommentModel> {
 		}
 	}
 	
+	/**
+	 * This method creates CommentOID of each Define models.
+	 * @param obj_oid OID of the object which the comment is associated with.
+	 * @return
+	 */
+	public static String createCommentOID(String obj_oid) {
+		if (StringUtils.isEmpty(obj_oid)) {
+			return "";
+		}
+		return PREFIX + obj_oid;
+	}
+
+	/**
+	 * Find a DefineCommentModel object in the given DefineModel by the given OID
+	 * @param define DefineModel
+	 * @param comment_oid Comment OID
+	 * @return A DefineCommentModel object with the Comment OID or null
+	 */
+	public static DefineCommentModel findByOid(DefineModel define, String comment_oid) {
+		DefineCommentModel comment = define.listSortedComment().stream()
+			.filter(o -> StringUtils.equals(o.oid, comment_oid)).findFirst().orElse(null);
+		return comment;
+	}
+
 	public String getDocumentIdString(String delimiter) {
 		String rtn = "";
 		for (int i = 0; i < document_refs.size(); i++) {

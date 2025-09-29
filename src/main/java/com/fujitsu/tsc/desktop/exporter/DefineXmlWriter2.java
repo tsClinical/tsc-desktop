@@ -73,6 +73,7 @@ public class DefineXmlWriter2 {
 		STUDYID("Study Identifier"),
 		RDOMAIN("Related Domain Abbreviation"),
 		USUBJID("Unique Subject Identifier"),
+		SUBJID("Subject Identifier for the Study"),
 		IDVAR("Identifying Variable"),
 		IDVARVAL("Identifying Variable Value"),
 		QNAM("Qualifier Variable Name"),
@@ -181,7 +182,7 @@ public class DefineXmlWriter2 {
 			}
 			md_ver_element.addAttribute("def:StandardVersion", standard_version);
 		} else {
-			if (StringUtils.isEmpty(study.define_version)) {
+			if (StringUtils.isNotEmpty(study.define_version)) {
 				md_ver_element.addAttribute("def:DefineVersion", study.define_version);
 			} else {
 				md_ver_element.addAttribute("def:DefineVersion", "2.1.0");
@@ -255,7 +256,9 @@ public class DefineXmlWriter2 {
 			if ("2.0.0".equals(DEFINE_VERSION)) {
 				ig_def_element.addAttribute("def:Class", dataset.dataset_class);
 			}
-			ig_def_element.addAttribute("def:ArchiveLocationID", dataset.getLeafOid());
+			if ("2.0.0".equals(DEFINE_VERSION) || dataset.has_no_data != YorNull.Yes) {
+				ig_def_element.addAttribute("def:ArchiveLocationID", dataset.getLeafOid());
+			}
 			ig_def_element.addAttribute("def:CommentOID", dataset.comment_oid);
 			if (!"2.0.0".equals(DEFINE_VERSION)) {
 				if (StringUtils.isEmpty(dataset.standard_oid)) {
@@ -511,7 +514,7 @@ public class DefineXmlWriter2 {
 								val_origin_element.addAttribute("Type", value.origin);
 							}
 						} else {
-							if ("CRF".equals(variable.origin) || "eDT".equals(value.origin)) {
+							if ("CRF".equals(value.origin) || "eDT".equals(value.origin)) {
 								val_origin_element.addAttribute("Type", "Collected");
 							} else {
 								val_origin_element.addAttribute("Type", value.origin);
@@ -575,6 +578,7 @@ public class DefineXmlWriter2 {
 		 */
 		List<DefineCodelistModel> codelists = define.listSortedCodelist();
 		Set<String> referenced_cl_ids = new HashSet<>();
+		referenced_cl_ids.addAll(define.getAutoSuppCodelistIds());	//CodelistRefs for AutoSUPP variables are auto-generated.
 		if ("2.0.0".equals(DEFINE_VERSION)) {
 			referenced_cl_ids.addAll(define.listSortedVariable().stream().filter(o -> o.has_no_data_derived == null)
 					.map(o -> o.codelist).collect(Collectors.toSet()));
@@ -761,6 +765,7 @@ public class DefineXmlWriter2 {
 		 */
 		List<DefineCommentModel> comments = define.listSortedComment();
 		Set<String> referenced_comment_oids = new HashSet<>();
+		referenced_comment_oids.addAll(define.getAutoSuppCommentOids());	//CommentRefs for AutoSUPP datasets/variables are auto-generated.
 		if ("2.0.0".equals(DEFINE_VERSION)) {
 			referenced_comment_oids.addAll(define.listSortedDataset().stream().filter(o -> o.has_no_data == null)
 					.map(o -> o.comment_oid).collect(Collectors.toSet()));
@@ -1030,6 +1035,9 @@ public class DefineXmlWriter2 {
 		Set<String> str_datasets = supp_variables.stream().map(o -> o.dataset_name).collect(Collectors.toSet());
 		List<DefineDatasetModel> datasets_w_supp = define.listSortedDataset().stream().filter(o -> str_datasets.contains(o.dataset_name))
 				.sorted((o1, o2) -> StringUtils.compare(o1.dataset_name, o2.dataset_name)).collect(Collectors.toList());
+		/* Additional variables for DC dataset */
+		DefineDatasetModel dc_dataset = define.listSortedDataset().stream().filter(o -> "DC".equals(o.dataset_name)).findFirst().orElse(null);
+
 		XmlElement root_element = xml_document.getRootElement();
 		XmlElement study_element = root_element.getElementByName("Study");
 		XmlElement md_ver_element = study_element.getElementByName("MetaDataVersion");
@@ -1050,7 +1058,6 @@ public class DefineXmlWriter2 {
 			if ("2.0.0".equals(DEFINE_VERSION)) {
 				ig_def_element.addAttribute("def:Class", "RELATIONSHIP");
 			}
-			ig_def_element.addAttribute("def:ArchiveLocationID", DefineDatasetModel.createLeafOid(dataset_name));
 			if (!"2.0.0".equals(DEFINE_VERSION)) {
 				if (StringUtils.isEmpty(dataset_w_supp.standard_oid)) {
 					ig_def_element.addAttribute("def:IsNonStandard", YorNull.Yes.name());
@@ -1067,7 +1074,15 @@ public class DefineXmlWriter2 {
 					}
 				}
 			}
-
+			if ("2.0.0".equals(DEFINE_VERSION) || StringUtils.isEmpty(ig_def_element.getAttribute("def:HasNoData"))) {
+				ig_def_element.addAttribute("def:ArchiveLocationID", DefineDatasetModel.createLeafOid(dataset_name));
+			}
+			/* Comment - find associated comment by OID. */
+			DefineCommentModel dataset_comment = DefineCommentModel.findByOid(define, DefineCommentModel.createCommentOID(DefineDatasetModel.createOid(dataset_name)));
+			if (dataset_comment != null) {
+				ig_def_element.addAttribute("def:CommentOID", dataset_comment.oid);
+				define.addAutoSuppCommentOid(dataset_comment.oid);
+			}
 			/* Description */
 			XmlElement desc_element = new XmlElement("Description");
 			ig_def_element.addElement(desc_element);
@@ -1076,34 +1091,42 @@ public class DefineXmlWriter2 {
 			trans_element.addAttribute("xml:lang", DEFAULTLANG);
 			trans_element.addText("Supplemental Qualifiers for " + dataset_w_supp.dataset_name);
 			/* Add ItemRef/ItemDef elements */
-			List<SuppVariable> enum_supp_variables = Arrays.asList(new SuppVariable[]{SuppVariable.STUDYID, SuppVariable.RDOMAIN, SuppVariable.USUBJID, SuppVariable.IDVAR, SuppVariable.IDVARVAL, SuppVariable.QNAM, SuppVariable.QLABEL, SuppVariable.QVAL, SuppVariable.QORIG, SuppVariable.QEVAL});
+			List<SuppVariable> enum_supp_variables = Arrays.asList(new SuppVariable[]{SuppVariable.STUDYID, SuppVariable.RDOMAIN, SuppVariable.USUBJID, SuppVariable.SUBJID, SuppVariable.IDVAR, SuppVariable.IDVARVAL, SuppVariable.QNAM, SuppVariable.QLABEL, SuppVariable.QVAL, SuppVariable.QORIG, SuppVariable.QEVAL});
 			DefineVariableModel studyid = define.listSortedVariable().stream()
 					.filter(o -> StringUtils.equals(o.dataset_name, dataset_w_supp.dataset_name) && "STUDYID".equals(o.variable_name))
 					.findFirst().orElse(null);
 			DefineVariableModel usubjid = define.listSortedVariable().stream()
 					.filter(o -> StringUtils.equals(o.dataset_name, dataset_w_supp.dataset_name) && "USUBJID".equals(o.variable_name))
 					.findFirst().orElse(null);
+			DefineVariableModel subjid = define.listSortedVariable().stream()
+					.filter(o -> StringUtils.equals(o.dataset_name, ("DC".equals(dataset_w_supp.dataset_name) ? "DC" : "DM")) && "SUBJID".equals(o.variable_name))
+					.findFirst().orElse(null);
 			DefineVariableModel seq = define.listSortedVariable().stream()
 					.filter(o -> StringUtils.equals(o.dataset_name, dataset_w_supp.dataset_name) && (dataset_w_supp.domain + "SEQ").equals(o.variable_name))
 					.findFirst().orElse(null);
 			List<DefineVariableModel> filtered_supp_variables = supp_variables.stream().filter(o -> StringUtils.equals(o.dataset_name, dataset_w_supp.dataset_name)).collect(Collectors.toList());
 			int order_number = 1;
+			int key_sequence = 1;
 			for (SuppVariable enum_supp_variable : enum_supp_variables) {
+				/* Skip SUBJID if the DC dataset does not exist */
+				if (enum_supp_variable == SuppVariable.SUBJID && dc_dataset == null) {
+					continue;
+				}
 				/* ItemRef */
 				XmlElement item_ref_element = new XmlElement("ItemRef");
 				ig_def_element.addElement(item_ref_element);
 				item_ref_element.addAttribute("ItemOID", DefineVariableModel.createOid(dataset_name, enum_supp_variable.name()));
 				item_ref_element.addAttribute("OrderNumber", String.valueOf(order_number++));
 				YorN mandatory = YorN.No;
-				if (enum_supp_variable == SuppVariable.STUDYID || enum_supp_variable == SuppVariable.RDOMAIN || enum_supp_variable == SuppVariable.USUBJID || enum_supp_variable == SuppVariable.QNAM || enum_supp_variable == SuppVariable.QLABEL || enum_supp_variable == SuppVariable.QVAL || enum_supp_variable == SuppVariable.QORIG) {
+				if (enum_supp_variable == SuppVariable.STUDYID || enum_supp_variable == SuppVariable.RDOMAIN || enum_supp_variable == SuppVariable.USUBJID || enum_supp_variable == SuppVariable.SUBJID || enum_supp_variable == SuppVariable.QNAM || enum_supp_variable == SuppVariable.QLABEL || enum_supp_variable == SuppVariable.QVAL || enum_supp_variable == SuppVariable.QORIG) {
 					mandatory = YorN.Yes;
 				}
 				item_ref_element.addAttribute("Mandatory", mandatory.name());
 				if (enum_supp_variable == SuppVariable.STUDYID) {
-					item_ref_element.addAttribute("KeySequence", "1");
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 					item_ref_element.addAttribute("MethodOID", studyid.method_oid);
 				} else if (enum_supp_variable == SuppVariable.RDOMAIN) {
-					item_ref_element.addAttribute("KeySequence", "2");
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 //					/* Add MethodOID as RDOMAIN is derived. */
 //					item_ref_element.addAttribute("MethodOID", DefineVariableModel.createMethodOid(dataset_name, enum_supp_variable.name()));
 //					/* Add MethodDef */
@@ -1119,14 +1142,16 @@ public class DefineXmlWriter2 {
 //					method_trans_element.addAttribute("xml:lang", "en");
 //					method_trans_element.addText("Domain abbreviation from where data originated.");
 				} else if (enum_supp_variable == SuppVariable.USUBJID) {
-					item_ref_element.addAttribute("KeySequence", "3");
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 					item_ref_element.addAttribute("MethodOID", usubjid.method_oid);
+				} else if (enum_supp_variable == SuppVariable.SUBJID) {
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 				} else if (enum_supp_variable == SuppVariable.IDVAR) {
-					item_ref_element.addAttribute("KeySequence", "4");
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 				} else if (enum_supp_variable == SuppVariable.IDVARVAL) {
-					item_ref_element.addAttribute("KeySequence", "5");
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 				} else if (enum_supp_variable == SuppVariable.QNAM) {
-					item_ref_element.addAttribute("KeySequence", "6");
+					item_ref_element.addAttribute("KeySequence", key_sequence++);
 				}
 				/* ItemDef */
 				XmlElement item_def_element = new XmlElement("ItemDef");
@@ -1143,6 +1168,10 @@ public class DefineXmlWriter2 {
 				} else if (enum_supp_variable == SuppVariable.USUBJID) {
 					if (usubjid != null) {
 						item_def_element.addAttribute("Length", usubjid.length);
+					}
+				} else if (enum_supp_variable == SuppVariable.SUBJID) {
+					if (subjid != null) {
+						item_def_element.addAttribute("Length", subjid.length);
 					}
 				} else if (enum_supp_variable == SuppVariable.IDVAR) {
 					if ("DM".equals(dataset_w_supp.dataset_name)) {
@@ -1206,6 +1235,12 @@ public class DefineXmlWriter2 {
 					item_def_element.addAttribute("Length", String.valueOf(length));
 				}
 				item_def_element.addAttribute("SASFieldName", enum_supp_variable.name());
+				/* Comment - find associated comment by OID. */
+				DefineCommentModel variable_comment = DefineCommentModel.findByOid(define, DefineCommentModel.createCommentOID(item_def_element.getAttribute("OID")));
+				if (variable_comment != null) {
+					item_def_element.addAttribute("def:CommentOID", variable_comment.oid);
+					define.addAutoSuppCommentOid(variable_comment.oid);
+				}
 				/* Description */
 				XmlElement item_desc_element = new XmlElement("Description");
 				item_def_element.addElement(item_desc_element);
@@ -1213,46 +1248,33 @@ public class DefineXmlWriter2 {
 				item_desc_element.addElement(item_trans_element);
 				item_trans_element.addAttribute("xml:lang", DEFAULTLANG);
 				item_trans_element.addText(enum_supp_variable.label());
+				/* CodelistRef */
+				String codelist_id = dataset_name + "." + enum_supp_variable.name();
+				List<DefineCodelistModel> variable_codelists = DefineCodelistModel.listByCodelistId(define, codelist_id);
+				if (!variable_codelists.isEmpty()) {
+					XmlElement cl_ref_element = new XmlElement("CodeListRef");
+					item_def_element.addElement(cl_ref_element);
+					cl_ref_element.addAttribute("CodeListOID", DefineCodelistModel.createCodelistOid(codelist_id));
+					define.addAutoSuppCodelistId(codelist_id);
+				}
 				/* def:Origin */
-				XmlElement origin_element = new XmlElement("def:Origin");
 				if (enum_supp_variable == SuppVariable.STUDYID) {
-					if (!"2.0.0".equals(DEFINE_VERSION) && ("CRF".equals(studyid.origin) || "eDT".equals(studyid.origin)) ) {
-						origin_element.addAttribute("Type", "Collected");
-						origin_element.addAttribute("Source", studyid.source);
-					} else {
-						if ("Collected".equals(studyid.origin)) {
-							if ("Vendor".equals(studyid.source)) {
-								origin_element.addAttribute("Type", "eDT");
-							} else {
-								origin_element.addAttribute("Type", "CRF");
-							}
-						} else {
-							origin_element.addAttribute("Type", studyid.origin);
-						}
-					}
+					XmlElement origin_element = createOriginElemet(studyid);
 					item_def_element.addElement(origin_element);
 				} else if (enum_supp_variable == SuppVariable.RDOMAIN) {
+					XmlElement origin_element = new XmlElement("def:Origin");
 					origin_element.addAttribute("Type", "Assigned");
 					item_def_element.addElement(origin_element);
 				} else if (enum_supp_variable == SuppVariable.USUBJID) {
-					if (!"2.0.0".equals(DEFINE_VERSION) && ("CRF".equals(usubjid.origin) || "eDT".equals(usubjid.origin)) ) {
-						origin_element.addAttribute("Type", "Collected");
-						origin_element.addAttribute("Source", usubjid.source);
-					} else {
-						if ("Collected".equals(usubjid.origin)) {
-							if ("Vendor".equals(usubjid.source)) {
-								origin_element.addAttribute("Type", "eDT");
-							} else {
-								origin_element.addAttribute("Type", "CRF");
-							}
-						} else {
-							origin_element.addAttribute("Type", usubjid.origin);
-						}
-					}
+					XmlElement origin_element = createOriginElemet(usubjid);
+					item_def_element.addElement(origin_element);
+				} else if (enum_supp_variable == SuppVariable.SUBJID) {
+					XmlElement origin_element = createOriginElemet(subjid);
 					item_def_element.addElement(origin_element);
 				} else if (enum_supp_variable == SuppVariable.QVAL) {
 					// Empty origin
 				} else {
+					XmlElement origin_element = new XmlElement("def:Origin");
 					origin_element.addAttribute("Type", "Assigned");
 					item_def_element.addElement(origin_element);
 				}
@@ -1437,6 +1459,51 @@ public class DefineXmlWriter2 {
 				return str_length_0_n.get(0);
 			}
 		}
+	}
+	
+	public XmlElement createOriginElemet(DefineVariableModel variable) {
+		XmlElement origin_element = new XmlElement("def:Origin");
+		if ("2.0.0".equals(DEFINE_VERSION)) {
+			if ("Collected".equals(variable.origin)) {
+				if ("Vendor".equals(variable.source)) {
+					origin_element.addAttribute("Type", "eDT");
+				} else {
+					origin_element.addAttribute("Type", "CRF");
+				}
+			} else {
+				origin_element.addAttribute("Type", variable.origin);
+			}
+		} else {
+			if ("CRF".equals(variable.origin) || "eDT".equals(variable.origin)) {
+				origin_element.addAttribute("Type", "Collected");
+			} else {
+				origin_element.addAttribute("Type", variable.origin);							
+			}
+			origin_element.addAttribute("Source", variable.source);
+		}
+		if (StringUtils.isNotEmpty(variable.predecessor)) {
+			XmlElement desc_element2 = new XmlElement("Description");
+			origin_element.addElement(desc_element2);
+			XmlElement trans_element2 = new XmlElement("TranslatedText");
+			desc_element2.addElement(trans_element2);
+			trans_element2.addAttribute("xml:lang", DEFAULTLANG);
+			trans_element2.addText(variable.predecessor);
+		}
+		if (StringUtils.isNotEmpty(variable.crf_page_type)) {
+			XmlElement doc_ref_element = new XmlElement("def:DocumentRef");
+			origin_element.addElement(doc_ref_element);
+			doc_ref_element.addAttribute("leafID", DefineDocumentModel.createOid(variable.crf_id));
+			XmlElement pdf_page_element = new XmlElement("def:PDFPageRef");
+			doc_ref_element.addElement(pdf_page_element);
+			pdf_page_element.addAttribute("Type", variable.crf_page_type);
+			pdf_page_element.addAttribute("PageRefs", variable.crf_page_reference);
+			pdf_page_element.addAttribute("FirstPage", variable.crf_first_page);
+			pdf_page_element.addAttribute("LastPage", variable.crf_last_page);
+			if (!"2.0.0".equals(DEFINE_VERSION)) {
+				pdf_page_element.addAttribute("Title", variable.crf_page_title);
+			}
+		}
+		return origin_element;
 	}
 	
 	public void writeout(XmlDocument xml_document) throws IOException {

@@ -1,4 +1,38 @@
 ﻿========================================
+tsClinical Metadata Desktop Tools v1.1.4
+    Released on: Sep 29, 2025
+========================================
+
+New features and bug fixes:
+-----------------------------------------------------------------------
+(1) [Convert from Excel to Define-XML]の以下の不具合を修正しました。
+    - [Define-XML 2.0/2.1（AutoSupp形式のExcelから）] Demographics as
+      Collected(DC) データセットがAutoSupp形式のExcelで定義されている場合、
+      SUPP--データセット用にSUBJID変数が作成されるようになりました。
+      変数定義は、SUPPDC.SUBJIDの場合はDC.SUBJIDから、その他のSUPP--
+      データセットの場合はDM.SUBJIDからコピーされます。
+    - [Define-XML 2.1] データセットのNo Data列が「Yes」の場合に、
+      ItemGroupDef要素のdef:ArchiveLocationID属性が作成されていました。
+    - [Define-XML 2.1] ExcelのOrigin値が「CRF」または「eDT」の場合、
+      ツールは値を「Collected」に変換します。しかし、Valueシートの
+      Origin値が「CRF」であった場合、変換されないことがありました。
+    - [Define-XML 2.0/2.1（AutoSupp形式のExcelから）] COMMENTシートに
+      「COM.IG.DatasetName」形式のCommentOID（例：COM.IG.SUPPDM）を
+      追加することにより、SUPP--データセットにコメントを追加する機能が
+      追加されました。この更新は、Define-XML 2.1でNo Dataの理由をDataset
+      コメントとして追加できなかった問題を解消するために行われました。
+    - [Define-XML 2.0/2.1（AutoSupp形式のExcelから）] CODELISTシートに
+      「DatasetName.VariableName」形式のCodelist ID（例：SUPPDM.QEVAL）
+      を追加することにより、非標準変数（SUPP-- データセットの変数）に
+      コードリストを追加する機能が追加されました。この更新は、
+      SDTM-IG 3.4で定義されているQEVAL変数のコードリストを追加できな
+      かった問題を解消するために行われました。
+    - [Define-XML 2.1（AutoSupp形式のExcelから）] Define-XML 2.1の
+      DefineVersion値は常に「2.1.0」で出力されていました。この問題は
+      修正され、ExcelのDefineVersion値がDefine-XMLのDefineVersion属性に
+      マッピングされるようになりました。
+
+========================================
 tsClinical Metadata Desktop Tools v1.1.3
     Released on: Aug 2, 2023
 ========================================

@@ -1,5 +1,5 @@
 /* 
- * Copyright (c) 2020 Fujitsu Limited. All rights reserved.
+* Copyright (c) 2020 Fujitsu Limited. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0(the "License").
  * You may obtain a copy of the License at
@@ -19,7 +19,7 @@ public class Config {
 	private static Logger logger = LogManager.getLogger();
 
 	public static String SOFTWARE_NAME = "tsClinical Metadata";
-	public static String SOFTWARE_VERSION = "1.1.3 (Open Source Edition)";
+	public static String SOFTWARE_VERSION = "1.1.4 (Open Source Edition)";
 	public static String[] DEFINE_VERSIONS = new String[] { "2.0.0", "2.1.n" };
 	public static String[] ODM_VERSIONS = new String[] { "1.3.2" };
 	public static String[] EDT_TYPE = new String[] {
